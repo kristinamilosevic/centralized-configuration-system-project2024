@@ -1,20 +1,22 @@
 package model
 
 type Config struct {
-	name       string
-	version    int
-	parameters map[string]string
-	// dodati atribute
+	Name       string
+	Version    int
+	Parameters map[string]string
 }
 
 func NewConfig(name string, version int, parameters map[string]string) Config {
 	return Config{
-		name:       name,
-		version:    version,
-		parameters: parameters,
+		Name:       name,
+		Version:    version,
+		Parameters: parameters,
 	}
 }
 
 type ConfigRepository interface {
-	// dodati metode (crud)
+	Create(config Config) error
+	ReadByName(name string) (Config, error)
+	Update(config Config) error
+	DeleteByName(name string) error
 }

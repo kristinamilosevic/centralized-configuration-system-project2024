@@ -1,17 +1,16 @@
 package model
 
 type ConfigGroup struct {
-	name          string
-	version       int
-	configuration []Config
-	// dodati atribute
+	Name          string
+	Version       int
+	Configuration []Config
 }
 
 func NewConfigGroup(name string, version int, configuration []Config) ConfigGroup {
 	return ConfigGroup{
-		name:          name,
-		version:       version,
-		configuration: configuration,
+		Name:          name,
+		Version:       version,
+		Configuration: configuration,
 	}
 }
 
