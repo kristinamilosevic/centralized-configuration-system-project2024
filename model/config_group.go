@@ -15,5 +15,8 @@ func NewConfigGroup(name string, version int, configuration []Config) ConfigGrou
 }
 
 type ConfigGroupRepository interface {
-	// dodati metode (crud)
+	Create(configGroup ConfigGroup) error
+	ReadByName(name string) (ConfigGroup, error)
+	Update(configGroup ConfigGroup) error
+	DeleteByName(name string) error
 }
