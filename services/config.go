@@ -34,3 +34,11 @@ func (s ConfigService) UpdateConfig(config model.Config) error {
 func (s ConfigService) DeleteConfigByName(name string) error {
 	return s.repo.DeleteByName(name)
 }
+
+func (s ConfigService) Add(config model.Config) {
+	s.repo.Add(config)
+}
+
+func (s ConfigService) Get(name string, version int) (model.Config, error) {
+	return s.repo.Get(name, version)
+}

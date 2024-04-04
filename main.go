@@ -2,14 +2,34 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"projekat/handlers"
 	"projekat/model"
 	"projekat/repositories"
 	"projekat/services"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	repo := repositories.NewConfigInMemRepository()
 	service := services.NewConfigService(repo)
+	handler := handlers.NewConfigHandler(service)
+	params := make(map[string]string)
+	params["username"] = "pera"
+	params["password"] = "pera123"
+	config := model.Config{
+		Name:       "db_config",
+		Version:    2,
+		Parameters: params,
+	}
+
+	service.Add(config)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/configs/{name}/{version}", handler.Get).Methods("GET")
+
+	http.ListenAndServe("0.0.0.0:8000", router)
 
 	configGroupRepo := repositories.NewConfigGroupInMemRepository()
 	configGroupService := services.NewConfigGroupService(configGroupRepo)

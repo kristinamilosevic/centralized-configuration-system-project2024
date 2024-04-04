@@ -19,4 +19,6 @@ type ConfigRepository interface {
 	ReadByName(name string) (Config, error)
 	Update(config Config) error
 	DeleteByName(name string) error
+	Add(Config Config)
+	Get(name string, version int) (Config, error)
 }

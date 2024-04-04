@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"projekat/model"
 )
 
@@ -49,4 +50,18 @@ func (repo *ConfigInMemRepository) DeleteByName(name string) error {
 
 	delete(repo.configs, name)
 	return nil
+}
+
+func (c ConfigInMemRepository) Add(config model.Config) {
+	key := fmt.Sprintf("%s/%d", config.Name, config.Version)
+	c.configs[key] = config
+}
+
+func (c ConfigInMemRepository) Get(name string, version int) (model.Config, error) {
+	key := fmt.Sprintf("%s/%d", name, version)
+	config, ok := c.configs[key]
+	if !ok {
+		return model.Config{}, errors.New("config not found")
+	}
+	return config, nil
 }
