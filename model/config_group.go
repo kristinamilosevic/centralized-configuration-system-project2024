@@ -19,4 +19,6 @@ type ConfigGroupRepository interface {
 	ReadByName(name string) (ConfigGroup, error)
 	Update(configGroup ConfigGroup) error
 	DeleteByName(name string) error
+	GetAll() ([]ConfigGroup, error)
+	Add(ConfigGroup ConfigGroup)
 }

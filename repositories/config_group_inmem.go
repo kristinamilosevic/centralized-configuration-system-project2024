@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"projekat/model"
 )
 
@@ -49,4 +50,18 @@ func (repo *ConfigGroupInMemRepository) DeleteByName(name string) error {
 
 	delete(repo.configGroups, name)
 	return nil
+}
+
+// GetAll vraća sve konfiguracije
+func (repo *ConfigGroupInMemRepository) GetAll() ([]model.ConfigGroup, error) {
+	configGroups := make([]model.ConfigGroup, 0, len(repo.configGroups))
+	for _, configGroup := range repo.configGroups {
+		configGroups = append(configGroups, configGroup)
+	}
+	return configGroups, nil
+}
+
+func (c ConfigGroupInMemRepository) Add(configGroup model.ConfigGroup) {
+	key := fmt.Sprintf("%s/%d", configGroup.Name, configGroup.Version)
+	c.configGroups[key] = configGroup
 }

@@ -25,19 +25,39 @@ func main() {
 	srv := &http.Server{Addr: ":8000"}
 
 	repo := repositories.NewConfigInMemRepository()
+	repoGroup := repositories.NewConfigGroupInMemRepository()
 	service := services.NewConfigService(repo)
+	serviceGroup := services.NewConfigGroupService(repoGroup)
 	handler := handlers.NewConfigHandler(service)
+	handlerGroup := handlers.NewConfigGroupHandler(serviceGroup)
+
+	configs := []model.Config{}
+
+	// Dodavanje pojedinačnih konfiguracija u listu
+	params1 := map[string]string{"username": "pera", "password": "pera123"}
+	config1 := model.Config{Name: "config1", Version: 1, Parameters: params1}
+	configs = append(configs, config1)
+
+	params2 := map[string]string{"username": "mika", "password": "mika123"}
+	config2 := model.Config{Name: "config2", Version: 1, Parameters: params2}
+	configs = append(configs, config2)
 
 	params := map[string]string{"username": "pera", "password": "pera123"}
 	config := model.Config{Name: "db_config", Version: 2, Parameters: params}
+
 	service.Add(config)
+	// Pravljenje konfiguracione grupe sa dodatom listom konfiguracija
+	configGroup := model.ConfigGroup{Name: "configGroup", Version: 9, Configuration: configs}
+
+	serviceGroup.Add(configGroup)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/configs/{name}/{version}", handler.Get).Methods("GET")
 	router.HandleFunc("/configs", handler.GetAll).Methods("GET")
+	router.HandleFunc("/configGroups", handlerGroup.GetAll).Methods("GET")
 	router.HandleFunc("/configs", handler.Create).Methods("POST")
 	router.HandleFunc("/configs/{name}", handler.DeleteByName).Methods("DELETE")
-
+	router.HandleFunc("/configGroups/{name}/configGroup", handlerGroup.AddConfigToGroup).Methods("POST")
 	// Pokretanje servera u zasebnoj gorutini
 	go func() {
 		log.Println("Starting server...")
