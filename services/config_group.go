@@ -50,6 +50,10 @@ func (s ConfigGroupService) AddConfigToGroup(groupName string, config model.Conf
 
 	return nil
 }
+
+func (s ConfigGroupService) Get(name string, version int) (model.ConfigGroup, error) {
+	return s.repo.Get(name, version)
+}
 func (s ConfigGroupService) GetAll() ([]model.ConfigGroup, error) {
 	return s.repo.GetAll()
 }

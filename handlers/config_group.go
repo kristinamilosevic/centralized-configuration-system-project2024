@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"projekat/model"
 	"projekat/services"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -38,6 +39,63 @@ func (c ConfigGroupHandler) AddConfigToGroup(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+// POST /config-groups
+func (c ConfigGroupHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var config model.ConfigGroup
+	err := json.NewDecoder(r.Body).Decode(&config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = c.service.CreateConfigGroup(config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+// GET /config-groups/{name}/{version}
+func (c ConfigGroupHandler) Get(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	version := mux.Vars(r)["version"]
+	versionInt, err := strconv.Atoi(version)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	config, err := c.service.Get(name, versionInt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	resp, err := json.Marshal(config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	//w.WriteHeader(http.StatusOK)
+	w.Write(resp)
+}
+
+// DELETE /configs/{name}
+func (c ConfigGroupHandler) DeleteByName(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	err := c.service.DeleteConfigGroupByName(name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // GET /configs

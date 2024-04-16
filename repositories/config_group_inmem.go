@@ -52,6 +52,15 @@ func (repo *ConfigGroupInMemRepository) DeleteByName(name string) error {
 	return nil
 }
 
+func (c ConfigGroupInMemRepository) Get(name string, version int) (model.ConfigGroup, error) {
+	key := fmt.Sprintf("%s/%d", name, version)
+	configGroup, ok := c.configGroups[key]
+	if !ok {
+		return model.ConfigGroup{}, errors.New("config not found")
+	}
+	return configGroup, nil
+}
+
 // GetAll vraća sve konfiguracije
 func (repo *ConfigGroupInMemRepository) GetAll() ([]model.ConfigGroup, error) {
 	configGroups := make([]model.ConfigGroup, 0, len(repo.configGroups))

@@ -21,4 +21,5 @@ type ConfigGroupRepository interface {
 	DeleteByName(name string) error
 	GetAll() ([]ConfigGroup, error)
 	Add(ConfigGroup ConfigGroup)
+	Get(name string, version int) (ConfigGroup, error)
 }

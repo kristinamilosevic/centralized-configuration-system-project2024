@@ -53,11 +53,15 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/configs/{name}/{version}", handler.Get).Methods("GET")
+	router.HandleFunc("/configGroups/{name}/{version}", handlerGroup.Get).Methods("GET")
 	router.HandleFunc("/configs", handler.GetAll).Methods("GET")
 	router.HandleFunc("/configGroups", handlerGroup.GetAll).Methods("GET")
 	router.HandleFunc("/configs", handler.Create).Methods("POST")
+	router.HandleFunc("/configGroups", handlerGroup.Create).Methods("POST")
 	router.HandleFunc("/configs/{name}", handler.DeleteByName).Methods("DELETE")
+	router.HandleFunc("/configGroups/{name}", handlerGroup.DeleteByName).Methods("DELETE")
 	router.HandleFunc("/configGroups/{name}/configGroup", handlerGroup.AddConfigToGroup).Methods("POST")
+
 	// Pokretanje servera u zasebnoj gorutini
 	go func() {
 		log.Println("Starting server...")
