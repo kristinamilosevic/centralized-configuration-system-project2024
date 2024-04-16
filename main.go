@@ -1,87 +1,61 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"projekat/handlers"
 	"projekat/model"
 	"projekat/repositories"
 	"projekat/services"
+	"syscall"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
+	// Kanal za prekid signala
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	// Startovanje HTTP servera
+	srv := &http.Server{Addr: ":8000"}
+
 	repo := repositories.NewConfigInMemRepository()
 	service := services.NewConfigService(repo)
 	handler := handlers.NewConfigHandler(service)
-	params := make(map[string]string)
-	params["username"] = "pera"
-	params["password"] = "pera123"
-	config := model.Config{
-		Name:       "db_config",
-		Version:    2,
-		Parameters: params,
-	}
 
+	params := map[string]string{"username": "pera", "password": "pera123"}
+	config := model.Config{Name: "db_config", Version: 2, Parameters: params}
 	service.Add(config)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/configs/{name}/{version}", handler.Get).Methods("GET")
+	router.HandleFunc("/configs", handler.GetAll).Methods("GET")
+	router.HandleFunc("/configs", handler.Create).Methods("POST")
+	router.HandleFunc("/configs/{name}", handler.DeleteByName).Methods("DELETE")
 
-	http.ListenAndServe("0.0.0.0:8000", router)
+	// Pokretanje servera u zasebnoj gorutini
+	go func() {
+		log.Println("Starting server...")
+		if err := http.ListenAndServe(":8000", router); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-	configGroupRepo := repositories.NewConfigGroupInMemRepository()
-	configGroupService := services.NewConfigGroupService(configGroupRepo)
+	// Čekanje na prekid signala za graceful shutdown
+	<-interrupt
+	log.Println("Received SIGINT or SIGTERM. Shutting down...")
 
-	service.Hello()
-
-	service.CreateConfig(model.Config{Name: "FirstConfiguration", Version: 1, Parameters: map[string]string{"parameter": "value"}})
-	config, err := service.ReadConfigByName("FirstConfiguration")
-	if err != nil {
-		fmt.Println("Error while reading configuration:", err)
-	} else {
-		fmt.Println("Read configuration:", config)
+	// Shutdown servera
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP server shutdown failed: %v", err)
 	}
 
-	service.CreateConfig(model.Config{Name: "SecondConfiguration", Version: 1, Parameters: map[string]string{"parameter": "value"}})
-	config2, err := service.ReadConfigByName("SecondConfiguration")
-	if err != nil {
-		fmt.Println("Error while reading configuration:", err)
-	} else {
-		fmt.Println("Read configuration:", config2)
-	}
-
-	service.UpdateConfig(model.Config{Name: "FirstConfiguration", Version: 2, Parameters: map[string]string{"parameter": "new_value"}})
-
-	err = service.DeleteConfigByName("FirstConfiguration")
-	if err != nil {
-		fmt.Println("Error while deleting configuration:", err)
-	} else {
-		fmt.Println("Configuration successfully deleted")
-	}
-
-	configGroupService.CreateConfigGroup(model.ConfigGroup{Name: "FirstConfigurationGroup", Version: 1, Configuration: []model.Config{}})
-	configGroup, err := configGroupService.ReadConfigGroupByName("FirstConfigurationGroup")
-	if err != nil {
-		fmt.Println("Error while reading configuration group:", err)
-	} else {
-		fmt.Println("Read configuration group:", configGroup)
-	}
-
-	configGroupService.CreateConfigGroup(model.ConfigGroup{Name: "SecondConfigurationGroup", Version: 1, Configuration: []model.Config{}})
-	configGroup2, err := configGroupService.ReadConfigGroupByName("SecondConfigurationGroup")
-	if err != nil {
-		fmt.Println("Error while reading configuration group:", err)
-	} else {
-		fmt.Println("Read configuration group:", configGroup2)
-	}
-
-	configGroupService.UpdateConfigGroup(model.ConfigGroup{Name: "FirstConfigurationGroup", Version: 2, Configuration: []model.Config{}})
-	err = configGroupService.DeleteConfigGroupByName("FirstConfigurationGroup")
-	if err != nil {
-		fmt.Println("Error while deleting configuration group:", err)
-	} else {
-		fmt.Println("Configuration group successfully deleted")
-	}
+	log.Println("Server successfully shut down.")
 }

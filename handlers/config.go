@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"projekat/model"
 	"projekat/services"
 	"strconv"
 
@@ -17,6 +18,24 @@ func NewConfigHandler(service services.ConfigService) ConfigHandler {
 	return ConfigHandler{
 		service: service,
 	}
+}
+
+// POST /configs
+func (c ConfigHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var config model.Config
+	err := json.NewDecoder(r.Body).Decode(&config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = c.service.CreateConfig(config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 // GET /configs/{name}/{version}
@@ -43,5 +62,35 @@ func (c ConfigHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	//w.WriteHeader(http.StatusOK)
+	w.Write(resp)
+}
+
+// DELETE /configs/{name}
+func (c ConfigHandler) DeleteByName(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	err := c.service.DeleteConfigByName(name)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /configs
+func (c ConfigHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	configs, err := c.service.GetAll()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := json.Marshal(configs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(resp)
 }

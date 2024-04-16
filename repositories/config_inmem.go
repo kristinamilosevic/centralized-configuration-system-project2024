@@ -65,3 +65,12 @@ func (c ConfigInMemRepository) Get(name string, version int) (model.Config, erro
 	}
 	return config, nil
 }
+
+// GetAll vraća sve konfiguracije
+func (repo *ConfigInMemRepository) GetAll() ([]model.Config, error) {
+	configs := make([]model.Config, 0, len(repo.configs))
+	for _, config := range repo.configs {
+		configs = append(configs, config)
+	}
+	return configs, nil
+}

@@ -42,3 +42,7 @@ func (s ConfigService) Add(config model.Config) {
 func (s ConfigService) Get(name string, version int) (model.Config, error) {
 	return s.repo.Get(name, version)
 }
+
+func (s ConfigService) GetAll() ([]model.Config, error) {
+	return s.repo.GetAll()
+}
