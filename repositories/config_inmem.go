@@ -17,48 +17,55 @@ func NewConfigInMemRepository() model.ConfigRepository {
 }
 
 func (repo *ConfigInMemRepository) Create(config model.Config) error {
-	if _, exists := repo.configs[config.Name]; exists {
-		return errors.New("config with this name already exists")
+	key := configKey(config.Name, config.Version)
+	if _, exists := repo.configs[key]; exists {
+		return errors.New("config with this name and version already exists")
 	}
 
-	repo.configs[config.Name] = config
+	repo.configs[key] = config
 	return nil
 }
 
-func (repo *ConfigInMemRepository) ReadByName(name string) (model.Config, error) {
-	config, exists := repo.configs[name]
-	if !exists {
-		return model.Config{}, errors.New("config not found")
+func (repo *ConfigInMemRepository) Read(name string, version int) (model.Config, error) {
+	for _, config := range repo.configs {
+		if config.Name == name && config.Version == version {
+			return config, nil
+		}
 	}
-
-	return config, nil
+	return model.Config{}, errors.New("config not found")
 }
 
 func (repo *ConfigInMemRepository) Update(config model.Config) error {
-	if _, exists := repo.configs[config.Name]; !exists {
+	key := configKey(config.Name, config.Version)
+	if _, exists := repo.configs[key]; !exists {
 		return errors.New("config not found")
 	}
 
-	repo.configs[config.Name] = config
+	repo.configs[key] = config
 	return nil
 }
 
-func (repo *ConfigInMemRepository) DeleteByName(name string) error {
-	if _, exists := repo.configs[name]; !exists {
+func (repo *ConfigInMemRepository) Delete(name string, version int) error {
+	found := false
+	for key, config := range repo.configs {
+		if config.Name == name && config.Version == version {
+			delete(repo.configs, key)
+			found = true
+		}
+	}
+	if !found {
 		return errors.New("config not found")
 	}
-
-	delete(repo.configs, name)
 	return nil
 }
 
 func (c ConfigInMemRepository) Add(config model.Config) {
-	key := fmt.Sprintf("%s/%d", config.Name, config.Version)
+	key := configKey(config.Name, config.Version)
 	c.configs[key] = config
 }
 
 func (c ConfigInMemRepository) Get(name string, version int) (model.Config, error) {
-	key := fmt.Sprintf("%s/%d", name, version)
+	key := configKey(name, version)
 	config, ok := c.configs[key]
 	if !ok {
 		return model.Config{}, errors.New("config not found")
@@ -73,4 +80,9 @@ func (repo *ConfigInMemRepository) GetAll() ([]model.Config, error) {
 		configs = append(configs, config)
 	}
 	return configs, nil
+}
+
+// configKey kreira ključ za konfiguraciju na osnovu imena i verzije
+func configKey(name string, version int) string {
+	return fmt.Sprintf("%s/%d", name, version)
 }

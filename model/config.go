@@ -16,9 +16,9 @@ func NewConfig(name string, version int, parameters map[string]string) Config {
 
 type ConfigRepository interface {
 	Create(config Config) error
-	ReadByName(name string) (Config, error)
+	Read(name string, version int) (Config, error)
 	Update(config Config) error
-	DeleteByName(name string) error
+	Delete(name string, version int) error
 	Add(Config Config)
 	Get(name string, version int) (Config, error)
 	GetAll() ([]Config, error)

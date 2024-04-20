@@ -61,14 +61,20 @@ func (c ConfigHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	//w.WriteHeader(http.StatusOK)
 	w.Write(resp)
 }
 
-// DELETE /configs/{name}
-func (c ConfigHandler) DeleteByName(w http.ResponseWriter, r *http.Request) {
+// DELETE /configs/{name}/{version}
+func (c ConfigHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
-	err := c.service.DeleteConfigByName(name)
+	version := mux.Vars(r)["version"]
+	versionInt, err := strconv.Atoi(version)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = c.service.Delete(name, versionInt)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
