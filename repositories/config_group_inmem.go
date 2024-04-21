@@ -44,11 +44,16 @@ func (repo *ConfigGroupInMemRepository) Update(newConfigGroup model.ConfigGroup)
 }
 
 func (repo *ConfigGroupInMemRepository) Delete(name string, version int) error {
-	key := fmt.Sprintf("%s/%d", name, version)
-	if _, exists := repo.configGroups[key]; !exists {
+	found := false
+	for key, configGroup := range repo.configGroups {
+		if configGroup.Name == name && configGroup.Version == version {
+			delete(repo.configGroups, key)
+			found = true
+		}
+	}
+	if !found {
 		return errors.New("config group not found")
 	}
-	delete(repo.configGroups, key)
 	return nil
 }
 
