@@ -62,6 +62,7 @@ func main() {
 	router.HandleFunc("/configGroups", handlerGroup.Create).Methods("POST")
 	router.HandleFunc("/configGroups/{name}/{version}", handlerGroup.Delete).Methods("DELETE")
 	router.HandleFunc("/configs/{name}/{version}", handler.Delete).Methods("DELETE")
+	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/removeConfig/{configName}/{configVersion}", handlerGroup.RemoveConfig).Methods("DELETE")
 
 	// Pokretanje servera u zasebnoj gorutini
 	go func() {

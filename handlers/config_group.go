@@ -100,3 +100,33 @@ func (c ConfigGroupHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(resp)
 }
+
+// DELETE /configGroups/{groupName}/{groupVersion}/removeConfig/{configName}/{configVersion}
+func (c ConfigGroupHandler) RemoveConfig(w http.ResponseWriter, r *http.Request) {
+	// Dohvatanje imena grupe, verzije grupe, imena konfiguracije i verzije konfiguracije iz putanje rute
+	groupName := mux.Vars(r)["groupName"]
+	groupVersion := mux.Vars(r)["groupVersion"]
+	configName := mux.Vars(r)["configName"]
+	configVersion := mux.Vars(r)["configVersion"]
+
+	// Konverzija verzije grupe i verzije konfiguracije u integer
+	groupVersionInt, err := strconv.Atoi(groupVersion)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	configVersionInt, err := strconv.Atoi(configVersion)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Poziv servisa za uklanjanje konfiguracije iz grupe
+	err = c.service.RemoveConfig(groupName, groupVersionInt, configName, configVersionInt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

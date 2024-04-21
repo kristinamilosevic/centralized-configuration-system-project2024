@@ -22,4 +22,5 @@ type ConfigGroupRepository interface {
 	GetAll() ([]ConfigGroup, error)
 	Add(ConfigGroup ConfigGroup)
 	Get(name string, version int) (ConfigGroup, error)
+	RemoveConfig(groupName string, groupVersion int, configName string, configVersion int) error
 }

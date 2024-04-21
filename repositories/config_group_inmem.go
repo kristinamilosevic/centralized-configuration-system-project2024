@@ -84,3 +84,31 @@ func (c ConfigGroupInMemRepository) Get(name string, version int) (model.ConfigG
 	}
 	return configGroup, nil
 }
+
+func (repo *ConfigGroupInMemRepository) RemoveConfig(groupName string, groupVersion int, configName string, configVersion int) error {
+	key := configGroupKey(groupName, groupVersion)
+	configGroup, ok := repo.configGroups[key]
+	if !ok {
+		return errors.New("config group not found")
+	}
+
+	// Pronađimo konfiguraciju koju želimo ukloniti iz grupe
+	var indexToRemove = -1
+	for i, config := range configGroup.Configuration {
+		if config.Name == configName && config.Version == configVersion {
+			indexToRemove = i
+			break
+		}
+	}
+	if indexToRemove == -1 {
+		return fmt.Errorf("config with name %s and version %d not found in group", configName, configVersion)
+	}
+
+	// Uklonimo konfiguraciju iz grupe
+	configGroup.Configuration = append(configGroup.Configuration[:indexToRemove], configGroup.Configuration[indexToRemove+1:]...)
+
+	// Ažurirajmo grupu konfiguracija u memoriji
+	repo.configGroups[key] = configGroup
+
+	return nil
+}
