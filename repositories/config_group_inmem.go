@@ -112,3 +112,25 @@ func (repo *ConfigGroupInMemRepository) RemoveConfig(groupName string, groupVers
 
 	return nil
 }
+
+func (repo *ConfigGroupInMemRepository) AddConfig(groupName string, groupVersion int, config model.Config) error {
+	// Kreiramo ključ za grupu konfiguracija
+	key := configGroupKey(groupName, groupVersion)
+
+	// Proveravamo postoji li već grupa sa tim ključem
+	configGroup, ok := repo.configGroups[key]
+	if !ok {
+		return errors.New("config group not found")
+	}
+
+	// Kreiramo novu konfiguraciju
+	newConfig := model.NewConfig2(groupName, groupVersion) // Prilagoditi kreiranje nove konfiguracije prema potrebama
+
+	// Dodajemo novu konfiguraciju u grupu
+	configGroup.Configuration = append(configGroup.Configuration, newConfig)
+
+	// Ažuriramo grupu konfiguracija u memoriji
+	repo.configGroups[key] = configGroup
+
+	return nil
+}

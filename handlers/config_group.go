@@ -130,3 +130,33 @@ func (c ConfigGroupHandler) RemoveConfig(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// PUT /configGroups/{groupName}/{groupVersion}/addConfig
+func (c ConfigGroupHandler) AddConfig(w http.ResponseWriter, r *http.Request) {
+	// Dohvatanje imena grupe i verzije grupe iz putanje rute
+	groupName := mux.Vars(r)["groupName"]
+	groupVersion := mux.Vars(r)["groupVersion"]
+
+	// Konverzija verzije grupe u integer
+	groupVersionInt, err := strconv.Atoi(groupVersion)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Dekodiranje tela zahteva kako bismo dobili objekat konfiguracije
+	config := model.Config{}
+	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Poziv servisa za dodavanje konfiguracije u grupu
+	err = c.service.AddConfigs(groupName, groupVersionInt, config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}

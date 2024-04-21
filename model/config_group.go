@@ -14,6 +14,13 @@ func NewConfigGroup(name string, version int, configuration []Config) ConfigGrou
 	}
 }
 
+func NewConfigGroup2(name string, version int) ConfigGroup {
+	return ConfigGroup{
+		Name:    name,
+		Version: version,
+	}
+}
+
 type ConfigGroupRepository interface {
 	Create(configGroup ConfigGroup) error
 	Read(name string, version int) (ConfigGroup, error)
@@ -23,4 +30,5 @@ type ConfigGroupRepository interface {
 	Add(ConfigGroup ConfigGroup)
 	Get(name string, version int) (ConfigGroup, error)
 	RemoveConfig(groupName string, groupVersion int, configName string, configVersion int) error
+	AddConfig(groupName string, groupVersion int, config Config) error
 }

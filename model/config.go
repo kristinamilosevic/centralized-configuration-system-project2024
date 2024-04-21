@@ -14,6 +14,13 @@ func NewConfig(name string, version int, parameters map[string]string) Config {
 	}
 }
 
+func NewConfig2(name string, version int) Config {
+	return Config{
+		Name:    name,
+		Version: version,
+	}
+}
+
 type ConfigRepository interface {
 	Create(config Config) error
 	Read(name string, version int) (Config, error)

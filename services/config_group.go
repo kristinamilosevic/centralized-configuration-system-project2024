@@ -77,3 +77,22 @@ func (s ConfigGroupService) RemoveConfig(groupName string, groupVersion int, con
 
 	return nil
 }
+
+func (s ConfigGroupService) AddConfigs(groupName string, groupVersion int, config model.Config) error {
+	// Prvo dohvatimo grupu konfiguracija
+	configGroup, err := s.repo.Get(groupName, groupVersion)
+	if err != nil {
+		return err
+	}
+
+	// Dodajemo nove konfiguracije u grupu
+	configGroup.Configuration = append(configGroup.Configuration, config)
+
+	// Ažurirajmo grupu konfiguracija u repozitoriju
+	err = s.repo.Update(configGroup)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
