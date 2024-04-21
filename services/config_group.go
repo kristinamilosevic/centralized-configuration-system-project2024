@@ -19,41 +19,30 @@ func (s ConfigGroupService) Hello() {
 	fmt.Println("hello from config group service")
 }
 
-func (s ConfigGroupService) CreateConfigGroup(configGroup model.ConfigGroup) error {
+func (s ConfigGroupService) Create(configGroup model.ConfigGroup) error {
 	return s.repo.Create(configGroup)
 }
 
-func (s ConfigGroupService) ReadConfigGroupByName(name string) (model.ConfigGroup, error) {
-	return s.repo.ReadByName(name)
+func (s ConfigGroupService) Read(name string, version int) (model.ConfigGroup, error) {
+	return s.repo.Read(name, version)
 }
 
-func (s ConfigGroupService) UpdateConfigGroup(configGroup model.ConfigGroup) error {
+func (s ConfigGroupService) Update(configGroup model.ConfigGroup) error {
 	return s.repo.Update(configGroup)
 }
 
-func (s ConfigGroupService) DeleteConfigGroupByName(name string) error {
-	return s.repo.DeleteByName(name)
+func (s ConfigGroupService) Delete(name string, version int) error {
+	return s.repo.Delete(name, version)
 }
 
-func (s ConfigGroupService) AddConfigToGroup(groupName string, config model.Config) error {
-	group, err := s.repo.ReadByName(groupName)
-	if err != nil {
-		return err
-	}
-
-	group.Configuration = append(group.Configuration, config)
-
-	err = s.repo.Update(group)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 func (s ConfigGroupService) GetAll() ([]model.ConfigGroup, error) {
 	return s.repo.GetAll()
 }
 
 func (s ConfigGroupService) Add(configGroup model.ConfigGroup) {
 	s.repo.Add(configGroup)
+}
+
+func (s ConfigGroupService) Get(name string, version int) (model.ConfigGroup, error) {
+	return s.repo.Get(name, version)
 }

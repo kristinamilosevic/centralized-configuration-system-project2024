@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"projekat/model"
 	"projekat/services"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -19,19 +20,16 @@ func NewConfigGroupHandler(service services.ConfigGroupService) ConfigGroupHandl
 	}
 }
 
-// POST /config-groups/{name}/config
-func (c ConfigGroupHandler) AddConfigToGroup(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	groupName := vars["name"]
-
-	var config model.Config
-	err := json.NewDecoder(r.Body).Decode(&config)
+// POST /configGroups
+func (c ConfigGroupHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var configGroup model.ConfigGroup
+	err := json.NewDecoder(r.Body).Decode(&configGroup)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = c.service.AddConfigToGroup(groupName, config) // Promenjeno c.service u c.groupService
+	err = c.service.Create(configGroup)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -40,7 +38,52 @@ func (c ConfigGroupHandler) AddConfigToGroup(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusCreated)
 }
 
-// GET /configs
+// GET /configGroups/{name}/{version}
+func (c ConfigGroupHandler) Get(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	version := mux.Vars(r)["version"]
+	versionInt, err := strconv.Atoi(version)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	configGroup, err := c.service.Get(name, versionInt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	resp, err := json.Marshal(configGroup)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(resp)
+}
+
+// DELETE /configGroups/{name}/{version}
+func (c ConfigGroupHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	version := mux.Vars(r)["version"]
+	versionInt, err := strconv.Atoi(version)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = c.service.Delete(name, versionInt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GET /configGroups
 func (c ConfigGroupHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	configGroups, err := c.service.GetAll()
 	if err != nil {

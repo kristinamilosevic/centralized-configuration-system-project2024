@@ -16,9 +16,10 @@ func NewConfigGroup(name string, version int, configuration []Config) ConfigGrou
 
 type ConfigGroupRepository interface {
 	Create(configGroup ConfigGroup) error
-	ReadByName(name string) (ConfigGroup, error)
+	Read(name string, version int) (ConfigGroup, error)
 	Update(configGroup ConfigGroup) error
-	DeleteByName(name string) error
+	Delete(name string, version int) error
 	GetAll() ([]ConfigGroup, error)
 	Add(ConfigGroup ConfigGroup)
+	Get(name string, version int) (ConfigGroup, error)
 }

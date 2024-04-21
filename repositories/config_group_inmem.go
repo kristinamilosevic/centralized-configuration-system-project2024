@@ -25,30 +25,30 @@ func (repo *ConfigGroupInMemRepository) Create(configGroup model.ConfigGroup) er
 	return nil
 }
 
-func (repo *ConfigGroupInMemRepository) ReadByName(name string) (model.ConfigGroup, error) {
-	configGroup, exists := repo.configGroups[name]
+func (repo *ConfigGroupInMemRepository) Read(name string, version int) (model.ConfigGroup, error) {
+	key := fmt.Sprintf("%s/%d", name, version)
+	configGroup, exists := repo.configGroups[key]
 	if !exists {
 		return model.ConfigGroup{}, errors.New("config group not found")
 	}
-
 	return configGroup, nil
 }
 
-func (repo *ConfigGroupInMemRepository) Update(configGroup model.ConfigGroup) error {
-	if _, exists := repo.configGroups[configGroup.Name]; !exists {
+func (repo *ConfigGroupInMemRepository) Update(newConfigGroup model.ConfigGroup) error {
+	key := configGroupKey(newConfigGroup.Name, newConfigGroup.Version)
+	if _, exists := repo.configGroups[key]; !exists {
 		return errors.New("config group not found")
 	}
-
-	repo.configGroups[configGroup.Name] = configGroup
+	repo.configGroups[key] = newConfigGroup
 	return nil
 }
 
-func (repo *ConfigGroupInMemRepository) DeleteByName(name string) error {
-	if _, exists := repo.configGroups[name]; !exists {
+func (repo *ConfigGroupInMemRepository) Delete(name string, version int) error {
+	key := fmt.Sprintf("%s/%d", name, version)
+	if _, exists := repo.configGroups[key]; !exists {
 		return errors.New("config group not found")
 	}
-
-	delete(repo.configGroups, name)
+	delete(repo.configGroups, key)
 	return nil
 }
 
@@ -64,4 +64,18 @@ func (repo *ConfigGroupInMemRepository) GetAll() ([]model.ConfigGroup, error) {
 func (c ConfigGroupInMemRepository) Add(configGroup model.ConfigGroup) {
 	key := fmt.Sprintf("%s/%d", configGroup.Name, configGroup.Version)
 	c.configGroups[key] = configGroup
+}
+
+// configKey kreira ključ za konfiguraciju na osnovu imena i verzije
+func configGroupKey(name string, version int) string {
+	return fmt.Sprintf("%s/%d", name, version)
+}
+
+func (c ConfigGroupInMemRepository) Get(name string, version int) (model.ConfigGroup, error) {
+	key := configGroupKey(name, version)
+	configGroup, ok := c.configGroups[key]
+	if !ok {
+		return model.ConfigGroup{}, errors.New("config group not found")
+	}
+	return configGroup, nil
 }
