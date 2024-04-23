@@ -17,11 +17,12 @@ func NewConfigGroupInMemRepository() model.ConfigGroupRepository {
 }
 
 func (repo *ConfigGroupInMemRepository) Create(configGroup model.ConfigGroup) error {
-	if _, exists := repo.configGroups[configGroup.Name]; exists {
+	key := configGroupKey(configGroup.Name, configGroup.Version)
+	if _, exists := repo.configGroups[key]; exists {
 		return errors.New("config group with this name already exists")
 	}
 
-	repo.configGroups[configGroup.Name] = configGroup
+	repo.configGroups[key] = configGroup
 	return nil
 }
 
