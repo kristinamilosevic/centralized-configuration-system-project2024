@@ -1,12 +1,12 @@
 package model
 
 type ConfigGroup struct {
-	Name          string   `json:"name"`
-	Version       int      `json:"version"`
-	Configuration []Config `json:"configuration"`
+	Name          string    `json:"name"`
+	Version       int       `json:"version"`
+	Configuration []Config2 `json:"configuration"`
 }
 
-func NewConfigGroup(name string, version int, configuration []Config) ConfigGroup {
+func NewConfigGroup(name string, version int, configuration []Config2) ConfigGroup {
 	return ConfigGroup{
 		Name:          name,
 		Version:       version,
@@ -30,5 +30,5 @@ type ConfigGroupRepository interface {
 	Add(ConfigGroup ConfigGroup)
 	Get(name string, version int) (ConfigGroup, error)
 	RemoveConfig(groupName string, groupVersion int, configName string, configVersion int) error
-	AddConfig(groupName string, groupVersion int, config Config) error
+	AddConfig(groupName string, groupVersion int, config Config2) error
 }

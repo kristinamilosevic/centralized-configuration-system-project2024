@@ -145,7 +145,7 @@ func (c ConfigGroupHandler) AddConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Dekodiranje tela zahteva kako bismo dobili objekat konfiguracije
-	config := model.Config{}
+	config := model.Config2{}
 	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

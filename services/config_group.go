@@ -78,7 +78,7 @@ func (s ConfigGroupService) RemoveConfig(groupName string, groupVersion int, con
 	return nil
 }
 
-func (s ConfigGroupService) AddConfigs(groupName string, groupVersion int, config model.Config) error {
+func (s ConfigGroupService) AddConfigs(groupName string, groupVersion int, config model.Config2) error {
 	// Prvo dohvatimo grupu konfiguracija
 	configGroup, err := s.repo.Get(groupName, groupVersion)
 	if err != nil {

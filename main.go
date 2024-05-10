@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"projekat/handlers"
-	"projekat/model"
 	"projekat/repositories"
 	"projekat/services"
 	"syscall"
@@ -25,43 +24,28 @@ func main() {
 	srv := &http.Server{Addr: ":8000"}
 
 	repo := repositories.NewConfigInMemRepository()
+	repo2 := repositories.NewConfig2InMemRepository()
 	repoGroup := repositories.NewConfigGroupInMemRepository()
 	service := services.NewConfigService(repo)
+	service2 := services.NewConfig2Service(repo2)
 	serviceGroup := services.NewConfigGroupService(repoGroup)
 	handler := handlers.NewConfigHandler(service)
+	handler2 := handlers.NewConfig2Handler(service2)
 	handlerGroup := handlers.NewConfigGroupHandler(serviceGroup)
-
-	configs := []model.Config{}
-
-	// Dodavanje pojedinačnih konfiguracija u listu
-	params1 := map[string]string{"username": "pera", "password": "pera123"}
-	config1 := model.Config{Name: "config1", Version: 1, Parameters: params1}
-	configs = append(configs, config1)
-
-	params2 := map[string]string{"username": "mika", "password": "mika123"}
-	config2 := model.Config{Name: "config2", Version: 1, Parameters: params2}
-	configs = append(configs, config2)
-
-	params := map[string]string{"username": "pera", "password": "pera123"}
-	config := model.Config{Name: "db_config", Version: 2, Parameters: params}
-
-	service.Add(config)
-	// Pravljenje konfiguracione grupe sa dodatom listom konfiguracija
-	configGroup := model.ConfigGroup{Name: "configGroup", Version: 9, Configuration: configs}
-	configGroup2 := model.ConfigGroup{Name: "configGroup2", Version: 2, Configuration: configs}
-
-	serviceGroup.Add(configGroup)
-	serviceGroup.Add(configGroup2)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/configs/{name}/{version}", handler.Get).Methods("GET")
+	router.HandleFunc("/configs2/{name}/{version}", handler2.Get).Methods("GET")
 	router.HandleFunc("/configGroups/{name}/{version}", handlerGroup.Get).Methods("GET")
 	router.HandleFunc("/configs", handler.GetAll).Methods("GET")
+	router.HandleFunc("/configs2", handler2.GetAll).Methods("GET")
 	router.HandleFunc("/configGroups", handlerGroup.GetAll).Methods("GET")
 	router.HandleFunc("/configs", handler.Create).Methods("POST")
+	router.HandleFunc("/configs2", handler2.Create).Methods("POST")
 	router.HandleFunc("/configGroups", handlerGroup.Create).Methods("POST")
 	router.HandleFunc("/configGroups/{name}/{version}", handlerGroup.Delete).Methods("DELETE")
 	router.HandleFunc("/configs/{name}/{version}", handler.Delete).Methods("DELETE")
+	router.HandleFunc("/configs2/{name}/{version}", handler2.Delete).Methods("DELETE")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/removeConfig/{configName}/{configVersion}", handlerGroup.RemoveConfig).Methods("DELETE")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/addConfig", handlerGroup.AddConfig).Methods("PUT")
 

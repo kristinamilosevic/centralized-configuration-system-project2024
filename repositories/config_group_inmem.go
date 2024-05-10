@@ -114,7 +114,7 @@ func (repo *ConfigGroupInMemRepository) RemoveConfig(groupName string, groupVers
 	return nil
 }
 
-func (repo *ConfigGroupInMemRepository) AddConfig(groupName string, groupVersion int, config model.Config) error {
+func (repo *ConfigGroupInMemRepository) AddConfig(groupName string, groupVersion int, config model.Config2) error {
 	// Kreiramo ključ za grupu konfiguracija
 	key := configGroupKey(groupName, groupVersion)
 
@@ -125,7 +125,7 @@ func (repo *ConfigGroupInMemRepository) AddConfig(groupName string, groupVersion
 	}
 
 	// Kreiramo novu konfiguraciju
-	newConfig := model.NewConfig2(groupName, groupVersion) // Prilagoditi kreiranje nove konfiguracije prema potrebama
+	newConfig := model.NewConfig2_2(groupName, groupVersion) // Prilagoditi kreiranje nove konfiguracije prema potrebama
 
 	// Dodajemo novu konfiguraciju u grupu
 	configGroup.Configuration = append(configGroup.Configuration, newConfig)
