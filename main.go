@@ -40,6 +40,7 @@ func main() {
 	router.HandleFunc("/configs", handler.GetAll).Methods("GET")
 	router.HandleFunc("/configs2", handler2.GetAll).Methods("GET")
 	router.HandleFunc("/configGroups", handlerGroup.GetAll).Methods("GET")
+	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", handlerGroup.GetFilteredConfigs).Methods("GET")
 	router.HandleFunc("/configs", handler.Create).Methods("POST")
 	router.HandleFunc("/configs2", handler2.Create).Methods("POST")
 	router.HandleFunc("/configGroups", handlerGroup.Create).Methods("POST")

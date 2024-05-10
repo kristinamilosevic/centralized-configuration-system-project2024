@@ -96,3 +96,12 @@ func (s ConfigGroupService) AddConfigs(groupName string, groupVersion int, confi
 
 	return nil
 }
+
+func (s ConfigGroupService) GetFilteredConfigs(name string, version int, filter map[string]string) ([]model.Config2, error) {
+	// Pozivamo odgovarajuću funkciju u repozitorijumu da bismo dobili filtrirane konfiguracije
+	filteredConfigs, err := s.repo.GetFilteredConfigs(name, version, filter)
+	if err != nil {
+		return nil, err
+	}
+	return filteredConfigs, nil
+}

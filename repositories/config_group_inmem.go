@@ -135,3 +135,29 @@ func (repo *ConfigGroupInMemRepository) AddConfig(groupName string, groupVersion
 
 	return nil
 }
+
+func (repo *ConfigGroupInMemRepository) GetFilteredConfigs(name string, version int, filter map[string]string) ([]model.Config2, error) {
+	// Dobijanje konfiguracione grupe
+	configGroup, err := repo.Read(name, version)
+	if err != nil {
+		return nil, err
+	}
+
+	filteredConfigs := make([]model.Config2, 0)
+
+	// Iteriranje kroz sve konfiguracije u grupi i provera da li se poklapaju sa filterom
+	for _, config := range configGroup.Configuration {
+		matches := true
+		for key, value := range filter {
+			if config.Labels[key] != value {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			filteredConfigs = append(filteredConfigs, config)
+		}
+	}
+
+	return filteredConfigs, nil
+}

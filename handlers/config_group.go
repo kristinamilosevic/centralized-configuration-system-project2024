@@ -6,6 +6,7 @@ import (
 	"projekat/model"
 	"projekat/services"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -159,4 +160,44 @@ func (c ConfigGroupHandler) AddConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (c ConfigGroupHandler) GetFilteredConfigs(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	versionStr := mux.Vars(r)["version"]
+	filterStr := mux.Vars(r)["filter"]
+
+	// Konvertovanje version iz stringa u int
+	version, err := strconv.Atoi(versionStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Parsiranje filtera u mapu stringova
+	filterMap := make(map[string]string)
+	if filterStr != "" {
+		keyValues := strings.Split(filterStr, ",")
+		for _, kv := range keyValues {
+			parts := strings.Split(kv, "=")
+			if len(parts) == 2 {
+				filterMap[parts[0]] = parts[1]
+			}
+		}
+	}
+
+	configs, err := c.service.GetFilteredConfigs(name, version, filterMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	resp, err := json.Marshal(configs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(resp)
 }
