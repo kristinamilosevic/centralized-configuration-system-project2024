@@ -201,3 +201,38 @@ func (c ConfigGroupHandler) GetFilteredConfigs(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(resp)
 }
+
+// DELETE /configGroups/{groupName}/{groupVersion}/removeByLabels/{filter}
+func (c ConfigGroupHandler) RemoveByLabels(w http.ResponseWriter, r *http.Request) {
+	groupName := mux.Vars(r)["groupName"]
+	groupVersion := mux.Vars(r)["groupVersion"]
+	filterStr := mux.Vars(r)["filter"]
+
+	// Konvertovanje verzije grupe u integer
+	groupVersionInt, err := strconv.Atoi(groupVersion)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Parsiranje filtera u mapu stringova
+	filterMap := make(map[string]string)
+	if filterStr != "" {
+		keyValues := strings.Split(filterStr, ",")
+		for _, kv := range keyValues {
+			parts := strings.Split(kv, "=")
+			if len(parts) == 2 {
+				filterMap[parts[0]] = parts[1]
+			}
+		}
+	}
+
+	// Pozivanje servisa za brisanje konfiguracija po labelama
+	err = c.service.RemoveByLabels(groupName, groupVersionInt, filterMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
