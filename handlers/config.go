@@ -6,6 +6,7 @@ import (
 	"projekat/model"
 	"projekat/services"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -85,6 +86,7 @@ func (c ConfigHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 // GET /configs
 func (c ConfigHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	time.Sleep(10 * time.Second)
 	configs, err := c.service.GetAll()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
