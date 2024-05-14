@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"projekat/model"
 )
@@ -104,4 +105,48 @@ func (s ConfigGroupService) GetFilteredConfigs(name string, version int, filter 
 		return nil, err
 	}
 	return filteredConfigs, nil
+}
+
+func (s ConfigGroupService) RemoveByLabels(groupName string, groupVersion int, filter map[string]string) error {
+	// Dohvatimo konfiguracionu grupu
+	configGroup, err := s.repo.Get(groupName, groupVersion)
+	if err != nil {
+		return err
+	}
+
+	// Inicijalizujemo slice za čuvanje indeksa elemenata koji treba ukloniti
+	indicesToRemove := []int{}
+
+	// Iteriramo kroz sve konfiguracije i proveravamo da li odgovaraju filteru
+	for i, config := range configGroup.Configuration {
+		matches := true
+		for key, value := range filter {
+			if config.Labels[key] != value {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			indicesToRemove = append(indicesToRemove, i)
+		}
+	}
+
+	// Ako nema pronađenih konfiguracija koje odgovaraju filteru, vratimo odgovarajuću grešku
+	if len(indicesToRemove) == 0 {
+		return errors.New("no configurations found matching the provided labels")
+	}
+
+	// Uklanjamo konfiguracije sa odgovarajućim indeksima iz konfiguracione grupe
+	for i := len(indicesToRemove) - 1; i >= 0; i-- {
+		index := indicesToRemove[i]
+		configGroup.Configuration = append(configGroup.Configuration[:index], configGroup.Configuration[index+1:]...)
+	}
+
+	// Ažuriramo konfiguracionu grupu u repozitorijumu
+	err = s.repo.Update(configGroup)
+	if err != nil {
+		return fmt.Errorf("failed to update config group: %v", err)
+	}
+
+	return nil
 }

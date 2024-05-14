@@ -161,3 +161,38 @@ func (repo *ConfigGroupInMemRepository) GetFilteredConfigs(name string, version 
 
 	return filteredConfigs, nil
 }
+
+func (repo *ConfigGroupInMemRepository) RemoveByLabels(groupName string, groupVersion int, filter map[string]string) error {
+	key := configGroupKey(groupName, groupVersion)
+	configGroup, ok := repo.configGroups[key]
+	if !ok {
+		return errors.New("config group not found")
+	}
+
+	// Inicijalizacija promenljive za praćenje broja uklonjenih konfiguracija
+	removed := 0
+
+	// Iteriranje kroz sve konfiguracije i provera da li odgovaraju filteru
+	for i := len(configGroup.Configuration) - 1; i >= 0; i-- {
+		config := configGroup.Configuration[i]
+		matches := true
+		for key, value := range filter {
+			if config.Labels[key] != value {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			// Uklanjanje konfiguracije
+			configGroup.Configuration = append(configGroup.Configuration[:i], configGroup.Configuration[i+1:]...)
+			removed++
+		}
+	}
+
+	if removed == 0 {
+		return errors.New("no configurations found matching the provided labels")
+	}
+
+	repo.configGroups[key] = configGroup
+	return nil
+}
