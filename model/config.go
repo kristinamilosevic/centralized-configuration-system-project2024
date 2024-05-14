@@ -1,9 +1,9 @@
 package model
 
 type Config struct {
-	Name       string
-	Version    int
-	Parameters map[string]string
+	Name       string            `json:"name"`
+	Version    int               `json:"version"`
+	Parameters map[string]string `json:"parameters"`
 }
 
 func NewConfig(name string, version int, parameters map[string]string) Config {
@@ -14,9 +14,19 @@ func NewConfig(name string, version int, parameters map[string]string) Config {
 	}
 }
 
+func NewConfig2(name string, version int) Config {
+	return Config{
+		Name:    name,
+		Version: version,
+	}
+}
+
 type ConfigRepository interface {
 	Create(config Config) error
-	ReadByName(name string) (Config, error)
+	Read(name string, version int) (Config, error)
 	Update(config Config) error
-	DeleteByName(name string) error
+	Delete(name string, version int) error
+	Add(Config Config)
+	Get(name string, version int) (Config, error)
+	GetAll() ([]Config, error)
 }
