@@ -1,16 +1,18 @@
 package model
 
 type Config2 struct {
-	Name    string            `json:"name"`
-	Version int               `json:"version"`
-	Labels  map[string]string `json:"labels"`
+	Name       string            `json:"name"`
+	Version    int               `json:"version"`
+	Parameters map[string]string `json:"parameters"`
+	Labels     map[string]string `json:"labels"`
 }
 
-func NewConfig_2(name string, version int, labels map[string]string) Config2 {
+func NewConfig_2(name string, version int, parameters map[string]string, labels map[string]string) Config2 {
 	return Config2{
-		Name:    name,
-		Version: version,
-		Labels:  labels,
+		Name:       name,
+		Version:    version,
+		Parameters: parameters,
+		Labels:     labels,
 	}
 }
 

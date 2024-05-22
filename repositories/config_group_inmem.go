@@ -147,6 +147,10 @@ func (repo *ConfigGroupInMemRepository) GetFilteredConfigs(name string, version 
 
 	// Iteriranje kroz sve konfiguracije u grupi i provera da li se poklapaju sa filterom
 	for _, config := range configGroup.Configuration {
+		if len(config.Labels) != len(filter) {
+			continue
+		}
+
 		matches := true
 		for key, value := range filter {
 			if config.Labels[key] != value {

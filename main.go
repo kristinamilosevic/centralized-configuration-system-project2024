@@ -43,7 +43,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// Kreiranje rate limiter middleware
-	limiter := middleware.NewRateLimiter(5, time.Minute) // 5 zahteva u minuti
+	limiter := middleware.NewRateLimiter(100, time.Minute) // 5 zahteva u minuti
 
 	// Dodavanje middleware-a na ruter
 	router.Use(func(next http.Handler) http.Handler {
