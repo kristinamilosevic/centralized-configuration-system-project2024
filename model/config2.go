@@ -28,7 +28,6 @@ type Config2Repository interface {
 	Read(name string, version int) (Config2, error)
 	Update(config Config2) error
 	Delete(name string, version int) error
-	Add(Config Config2)
 	Get(name string, version int) (Config2, error)
 	GetAll() ([]Config2, error)
 }

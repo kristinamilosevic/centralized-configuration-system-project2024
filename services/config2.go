@@ -3,13 +3,14 @@ package services
 import (
 	"fmt"
 	"projekat/model"
+	"projekat/poststore"
 )
 
 type Config2Service struct {
-	repo model.Config2Repository
+	repo *poststore.PostStore
 }
 
-func NewConfig2Service(repo model.Config2Repository) Config2Service {
+func NewConfig2Service(repo *poststore.PostStore) Config2Service {
 	return Config2Service{
 		repo: repo,
 	}
@@ -20,29 +21,43 @@ func (s Config2Service) Hello() {
 }
 
 func (s Config2Service) CreateConfig(config model.Config2) error {
-	return s.repo.Create(config)
+	_, err := s.repo.CreateConfig(&config)
+	return err
 }
 
 func (s Config2Service) Read(name string, version int) (model.Config2, error) {
-	return s.repo.Read(name, version)
+	config, err := s.repo.GetConfig(name, version)
+	if err != nil {
+		return model.Config2{}, err
+	}
+	return *config, nil
 }
 
 func (s Config2Service) UpdateConfig(config model.Config2) error {
-	return s.repo.Update(config)
+	return s.repo.UpdateConfig(&config)
 }
 
 func (s Config2Service) Delete(name string, version int) error {
-	return s.repo.Delete(name, version)
-}
-
-func (s Config2Service) Add(config model.Config2) {
-	s.repo.Add(config)
+	_, err := s.repo.DeleteConfig(name, version)
+	return err
 }
 
 func (s Config2Service) Get(name string, version int) (model.Config2, error) {
-	return s.repo.Get(name, version)
+	config, err := s.repo.GetConfig(name, version)
+	if err != nil {
+		return model.Config2{}, err
+	}
+	return *config, nil
 }
 
 func (s Config2Service) GetAll() ([]model.Config2, error) {
-	return s.repo.GetAll()
+	configs, err := s.repo.GetAllConfigs()
+	if err != nil {
+		return nil, err
+	}
+	var result []model.Config2
+	for _, c := range configs {
+		result = append(result, *c)
+	}
+	return result, nil
 }

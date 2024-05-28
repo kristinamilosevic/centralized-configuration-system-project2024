@@ -225,7 +225,7 @@ func (c ConfigGroupHandler) RemoveByLabels(w http.ResponseWriter, r *http.Reques
 				filterMap[parts[0]] = parts[1]
 			}
 		}
-	}
+	} 
 
 	// Pozivanje servisa za brisanje konfiguracija po labelama
 	err = c.service.RemoveByLabels(groupName, groupVersionInt, filterMap)
