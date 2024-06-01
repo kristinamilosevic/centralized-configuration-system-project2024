@@ -31,15 +31,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize poststore: %v", err)
 	}
+	storeGroup, err := poststore.NewGroupStore()
+	if err != nil {
+		log.Fatalf("Failed to initialize poststore: %v", err)
+	}
 
 	// Inicijalizacija in-memory skladišta
 	repo := repositories.NewConfigInMemRepository()
-	repoGroup := repositories.NewConfigGroupInMemRepository()
+	//repoGroup := repositories.NewConfigGroupInMemRepository()
 
 	// Inicijalizacija servisa
 	service := services.NewConfigService(repo)
 	service2 := services.NewConfig2Service(store)
-	serviceGroup := services.NewConfigGroupService(repoGroup)
+	serviceGroup := services.NewConfigGroupService(storeGroup)
 
 	// Inicijalizacija handlera
 	handler := handlers.NewConfigHandler(service)
@@ -75,6 +79,7 @@ func main() {
 	router.HandleFunc("/configGroups/{name}/{version}", handlerGroup.Delete).Methods("DELETE")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/removeConfig/{configName}/{configVersion}", handlerGroup.RemoveConfig).Methods("DELETE")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/addConfig", handlerGroup.AddConfig).Methods("PUT")
+	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", handlerGroup.GetFilteredConfigs).Methods("GET")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/removeByLabels/{filter}", handlerGroup.RemoveByLabels).Methods("DELETE")
 
 	// Pokretanje servera u zasebnoj gorutini
