@@ -69,7 +69,11 @@ func (gs *GroupStore) Read(name string, version int) (model.ConfigGroup, error) 
 func (gs *GroupStore) Update(newConfigGroup model.ConfigGroup) error {
 	kv := gs.cli.KV()
 	key := constructGroupKey(newConfigGroup.Name, newConfigGroup.Version)
-	if _, _, exists := kv.Get(key, nil); exists == nil {
+	pair, _, err := kv.Get(key, nil)
+	if err != nil {
+		return err
+	}
+	if pair == nil {
 		return errors.New("config group not found")
 	}
 	data, err := json.Marshal(newConfigGroup)
@@ -168,6 +172,7 @@ func (gs *GroupStore) GetFilteredConfigs(name string, version int, filter map[st
 
 func (gs *GroupStore) RemoveByLabels(groupName string, groupVersion int, filter map[string]string) error {
 	fmt.Println("RemoveByLabels method called with groupName:", groupName, "groupVersion:", groupVersion, "filter:", filter)
+
 	// Čitanje grupe konfiguracija iz baze podataka
 	configGroup, err := gs.Read(groupName, groupVersion)
 	if err != nil {
@@ -195,7 +200,7 @@ func (gs *GroupStore) RemoveByLabels(groupName string, groupVersion int, filter 
 	// Ažuriranje konfiguracija u grupi samo sa onima koje nisu uklonjene
 	configGroup.Configuration = remainingConfigs
 
-	// Ako su sve konfiguracije uklonjene, vraćamo grešku
+	// Ako su sve konfiguracije uklonjene, vratimo grešku
 	if len(configGroup.Configuration) == 0 {
 		fmt.Println("No configurations found matching the provided labels")
 		return errors.New("no configurations found matching the provided labels")

@@ -40,10 +40,6 @@ func (s ConfigGroupService) GetAll() ([]model.ConfigGroup, error) {
 	return s.repo.GetAll()
 }
 
-func (s ConfigGroupService) Add(configGroup model.ConfigGroup) {
-	s.repo.Add(configGroup)
-}
-
 func (s ConfigGroupService) Get(name string, version int) (model.ConfigGroup, error) {
 	return s.repo.Get(name, version)
 }
@@ -113,39 +109,41 @@ func (s ConfigGroupService) RemoveByLabels(groupName string, groupVersion int, f
 		return err
 	}
 
-	// Inicijalizujemo slice za čuvanje indeksa elemenata koji treba ukloniti
-	indicesToRemove := []int{}
+	// Inicijalizujemo slice za čuvanje preostalih konfiguracija
+	var remainingConfigs []model.Config2
 
 	// Iteriramo kroz sve konfiguracije i proveravamo da li odgovaraju filteru
-	for i, config := range configGroup.Configuration {
-		matches := true
-		for key, value := range filter {
-			if config.Labels[key] != value {
-				matches = false
-				break
-			}
-		}
-		if matches {
-			indicesToRemove = append(indicesToRemove, i)
+	for _, config := range configGroup.Configuration {
+		if !labelsExactMatch(config.Labels, filter) {
+			remainingConfigs = append(remainingConfigs, config)
 		}
 	}
 
-	// Ako nema pronađenih konfiguracija koje odgovaraju filteru, vratimo odgovarajuću grešku
-	if len(indicesToRemove) == 0 {
+	// Ako sve konfiguracije odgovaraju filteru, vratimo odgovarajuću grešku
+	if len(remainingConfigs) == len(configGroup.Configuration) {
 		return errors.New("no configurations found matching the provided labels")
 	}
 
-	// Uklanjamo konfiguracije sa odgovarajućim indeksima iz konfiguracione grupe
-	for i := len(indicesToRemove) - 1; i >= 0; i-- {
-		index := indicesToRemove[i]
-		configGroup.Configuration = append(configGroup.Configuration[:index], configGroup.Configuration[index+1:]...)
-	}
+	// Ažuriramo grupu konfiguracija sa preostalim konfiguracijama
+	configGroup.Configuration = remainingConfigs
 
-	// Ažuriramo konfiguracionu grupu u repozitorijumu
+	// Ažuriramo grupu konfiguracija u repozitoriju
 	err = s.repo.Update(configGroup)
 	if err != nil {
 		return fmt.Errorf("failed to update config group: %v", err)
 	}
 
 	return nil
+}
+
+func labelsExactMatch(configLabels, filter map[string]string) bool {
+	if len(configLabels) != len(filter) {
+		return false
+	}
+	for key, value := range filter {
+		if configLabels[key] != value {
+			return false
+		}
+	}
+	return true
 }
