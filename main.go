@@ -80,7 +80,7 @@ func main() {
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/removeConfig/{configName}/{configVersion}", handlerGroup.RemoveConfig).Methods("DELETE")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/addConfig", handlerGroup.AddConfig).Methods("PUT")
 	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", handlerGroup.GetFilteredConfigs).Methods("GET")
-	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/removeByLabels/{filter}", handlerGroup.RemoveByLabels).Methods("DELETE")
+	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{filter}", handlerGroup.RemoveByLabels).Methods("DELETE")
 
 	// Pokretanje servera u zasebnoj gorutini
 	go func() {
