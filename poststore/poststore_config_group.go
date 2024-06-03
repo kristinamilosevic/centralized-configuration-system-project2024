@@ -142,6 +142,15 @@ func (gs *GroupStore) AddConfig(groupName string, groupVersion int, config model
 	if err != nil {
 		return err
 	}
+
+	// Provera da li konfiguracija već postoji
+	for _, existingConfig := range configGroup.Configuration {
+		if existingConfig.Name == config.Name && existingConfig.Version == config.Version {
+			return errors.New("configuration with the same name and version already exists")
+		}
+	}
+
+	// Dodavanje nove konfiguracije
 	configGroup.Configuration = append(configGroup.Configuration, config)
 	return gs.Update(configGroup)
 }

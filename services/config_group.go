@@ -82,10 +82,17 @@ func (s ConfigGroupService) AddConfigs(groupName string, groupVersion int, confi
 		return err
 	}
 
-	// Dodajemo nove konfiguracije u grupu
+	// Provera da li konfiguracija već postoji
+	for _, existingConfig := range configGroup.Configuration {
+		if existingConfig.Name == config.Name && existingConfig.Version == config.Version {
+			return errors.New("configuration with the same name and version already exists")
+		}
+	}
+
+	// Dodajemo novu konfiguraciju u grupu
 	configGroup.Configuration = append(configGroup.Configuration, config)
 
-	// Ažurirajmo grupu konfiguracija u repozitoriju
+	// Ažuriramo grupu konfiguracija u repozitoriju
 	err = s.repo.Update(configGroup)
 	if err != nil {
 		return err
