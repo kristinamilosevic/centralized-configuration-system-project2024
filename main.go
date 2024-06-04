@@ -77,8 +77,8 @@ func main() {
 	router.HandleFunc("/configGroups", handlerGroup.GetAll).Methods("GET")
 	router.HandleFunc("/configGroups", handlerGroup.Create).Methods("POST")
 	router.HandleFunc("/configGroups/{name}/{version}", handlerGroup.Delete).Methods("DELETE")
-	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/removeConfig/{configName}/{configVersion}", handlerGroup.RemoveConfig).Methods("DELETE")
-	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/addConfig", handlerGroup.AddConfig).Methods("PUT")
+	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{configName}/{configVersion}", handlerGroup.RemoveConfig).Methods("DELETE")
+	router.HandleFunc("/configGroups/{groupName}/{groupVersion}", handlerGroup.AddConfig).Methods("PUT")
 	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", handlerGroup.GetFilteredConfigs).Methods("GET")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{filter}", handlerGroup.RemoveByLabels).Methods("DELETE")
 
