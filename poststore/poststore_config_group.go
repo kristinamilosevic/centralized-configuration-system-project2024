@@ -156,26 +156,36 @@ func (gs *GroupStore) AddConfig(groupName string, groupVersion int, config model
 }
 
 func (gs *GroupStore) GetFilteredConfigs(name string, version int, filter map[string]string) ([]model.Config2, error) {
+	// Dobavljanje konfiguracione grupe iz skladišta
 	configGroup, err := gs.Read(name, version)
 	if err != nil {
 		return nil, err
 	}
+
 	var filteredConfigs []model.Config2
+
+	// Kreiranje prefiksa na osnovu filtera
+	prefix := ""
+	for key, value := range filter {
+		prefix = fmt.Sprintf("%s%s=%s", prefix, key, value)
+	}
+
+	// Filtriranje konfiguracija
 	for _, config := range configGroup.Configuration {
 		if len(config.Labels) != len(filter) {
-			continue
+			continue // preskoči ako broj etiketa ne odgovara
 		}
-		matches := true
-		for key, value := range filter {
-			if config.Labels[key] != value {
-				matches = false
-				break
-			}
+
+		configPrefix := ""
+		for key, value := range config.Labels {
+			configPrefix = fmt.Sprintf("%s%s=%s", configPrefix, key, value)
 		}
-		if matches {
+
+		if configPrefix == prefix {
 			filteredConfigs = append(filteredConfigs, config)
 		}
 	}
+
 	return filteredConfigs, nil
 }
 
