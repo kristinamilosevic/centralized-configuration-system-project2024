@@ -16,7 +16,38 @@ import (
 	"projekat/services"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+// Definisanje potrebnih elemenata
+var (
+	currentCount = 0
+	httpHits     = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "my_app_http_hit_total",
+			Help: "Total number of HTTP hits.",
+		},
+	)
+	metricsList        = []prometheus.Collector{httpHits}
+	prometheusRegistry = prometheus.NewRegistry()
+)
+
+func init() {
+	// Registracija metrika koje će biti izložene
+	prometheusRegistry.MustRegister(metricsList...)
+}
+
+func metricsHandler() http.Handler {
+	return promhttp.HandlerFor(prometheusRegistry, promhttp.HandlerOpts{})
+}
+
+func count(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		httpHits.Inc()
+		f(w, r) // originalna funkcija se poziva
+	}
+}
 
 func main() {
 
@@ -82,6 +113,9 @@ func main() {
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}", handlerGroup.AddConfig).Methods("PUT")
 	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", handlerGroup.GetFilteredConfigs).Methods("GET")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{filter}", handlerGroup.RemoveByLabels).Methods("DELETE")
+
+	// Dodavanje rute za metrike
+	router.Path("/metrics").Handler(metricsHandler())
 
 	// Pokretanje servera u zasebnoj gorutini
 	go func() {
