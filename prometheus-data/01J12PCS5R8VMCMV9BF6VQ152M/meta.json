@@ -1,0 +1,17 @@
+{
+	"ulid": "01J12PCS5R8VMCMV9BF6VQ152M",
+	"minTime": 1719111696685,
+	"maxTime": 1719115200000,
+	"stats": {
+		"numSamples": 1645,
+		"numSeries": 5,
+		"numChunks": 11
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01J12PCS5R8VMCMV9BF6VQ152M"
+		]
+	},
+	"version": 1
+}
