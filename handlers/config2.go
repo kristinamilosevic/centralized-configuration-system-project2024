@@ -20,7 +20,14 @@ func NewConfig2Handler(service services.Config2Service) Config2Handler {
 	}
 }
 
-// POST /configs
+// swagger:route POST /configs configs createConfig
+// Creates a new configuration.
+//
+// Responses:
+//
+//	201: NoContent
+//	400: BadRequestResponse
+//	500: InternalServerErrorResponse
 func (c Config2Handler) Create(w http.ResponseWriter, r *http.Request) {
 	var config model.Config2
 	err := json.NewDecoder(r.Body).Decode(&config)
@@ -38,7 +45,15 @@ func (c Config2Handler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// GET /configs/{name}/{version}
+// swagger:route GET /configs/{name}/{version} configs getConfig
+// Get a configuration by name and version.
+//
+// Responses:
+//
+//	200: ResponseConfig2
+//	400: BadRequestResponse
+//	404: NotFoundResponse
+//	500: InternalServerErrorResponse
 func (c Config2Handler) Get(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	version := mux.Vars(r)["version"]
@@ -64,7 +79,15 @@ func (c Config2Handler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-// DELETE /configs/{name}/{version}
+// swagger:route DELETE /configs/{name}/{version} configs deleteConfig
+// Deletes a configuration by name and version.
+//
+// Responses:
+//
+//	204: NoContent
+//	400: BadRequestResponse
+//	404: NotFoundResponse
+//	500: InternalServerErrorResponse
 func (c Config2Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	version := mux.Vars(r)["version"]
@@ -83,7 +106,13 @@ func (c Config2Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /configs
+// swagger:route GET /configs configs getAllConfigs
+// Get all configurations.
+//
+// Responses:
+//
+//	200: []ResponseConfig2
+//	500: InternalServerErrorResponse
 func (c Config2Handler) GetAll(w http.ResponseWriter, r *http.Request) {
 	configs, err := c.service.GetAll()
 	if err != nil {

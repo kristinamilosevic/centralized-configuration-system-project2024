@@ -1,0 +1,169 @@
+basePath: /
+info:
+    description: 'Title: Post API'
+    title: Post API
+    version: 0.0.1
+paths:
+    /configGroups:
+        get:
+            operationId: getAllConfigGroups
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfigGroup'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Retrieves all configuration groups.
+            tags:
+                - configGroups
+        post:
+            operationId: createConfigGroup
+            responses:
+                "201":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Creates a new configuration group.
+            tags:
+                - configGroups
+    /configGroups/{groupName}/{groupVersion}/addConfig:
+        put:
+            operationId: addConfig
+            responses:
+                "201":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Adds a configuration to a group by name and version.
+            tags:
+                - configGroups
+    /configGroups/{groupName}/{groupVersion}/removeByLabels/{filter}:
+        delete:
+            operationId: removeByLabels
+            responses:
+                "204":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Removes configurations from a group by labels using name, version, and label filter.
+            tags:
+                - configGroups
+    /configGroups/{groupName}/{groupVersion}/removeConfig/{configName}/{configVersion}:
+        delete:
+            operationId: removeConfig
+            responses:
+                "204":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Removes a configuration from a group by name and version.
+            tags:
+                - configGroups
+    /configGroups/{name}/{version}:
+        delete:
+            operationId: deleteConfigGroup
+            responses:
+                "204":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Deletes a configuration group by name and version.
+            tags:
+                - configGroups
+        get:
+            operationId: getConfigGroup
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfigGroup'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Retrieves a configuration group by name and version.
+            tags:
+                - configGroups
+    /configGroups/{name}/{version}/filteredConfigs/{filter}:
+        get:
+            operationId: getFilteredConfigs
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfig'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Retrieves filtered configurations from a group by name, version, and filter criteria.
+            tags:
+                - configGroups
+    /configs:
+        get:
+            operationId: getAllConfigs
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfig2'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Get all configurations.
+            tags:
+                - configs
+        post:
+            operationId: createConfig
+            responses:
+                "201":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Creates a new configuration.
+            tags:
+                - configs
+    /configs/{name}/{version}:
+        delete:
+            operationId: deleteConfig
+            responses:
+                "204":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Deletes a configuration by name and version.
+            tags:
+                - configs
+        get:
+            operationId: getConfig
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfig2'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Get a configuration by name and version.
+            tags:
+                - configs
+produces:
+    - application/json
+schemes:
+    - http
+swagger: "2.0"

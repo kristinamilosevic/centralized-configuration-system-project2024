@@ -1,10 +1,19 @@
 package model
 
+// swagger:model Config2
 type Config2 struct {
-	Name       string            `json:"name"`
-	Version    int               `json:"version"`
+	// Name of the post
+	// in: string
+	Name string `json:"name"`
+	// Version of the post
+	// in: int
+	Version int `json:"version"`
+	// Parameters of the post
+	// in: map[string]string
 	Parameters map[string]string `json:"parameters"`
-	Labels     map[string]string `json:"labels"`
+	// Labels of the post
+	// in: map[string]string
+	Labels map[string]string `json:"labels"`
 }
 
 func NewConfig_2(name string, version int, parameters map[string]string, labels map[string]string) Config2 {

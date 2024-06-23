@@ -1,3 +1,15 @@
+// Post API
+//
+// Title: Post API
+//
+// Schemes: http
+// Version: 0.0.1
+// BasePath: /
+//
+// Produces:
+// - application/json
+//
+// swagger:meta
 package main
 
 import (
@@ -90,7 +102,7 @@ func main() {
 	log.Println("Received SIGINT or SIGTERM. Shutting down...")
 
 	// Shutdown servera
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatalf("HTTP server shutdown failed: %v", err)
