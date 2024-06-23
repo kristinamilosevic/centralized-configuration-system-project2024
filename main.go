@@ -1,15 +1,3 @@
-// Post API
-//
-// Title: Post API
-//
-// Schemes: http
-// Version: 0.0.1
-// BasePath: /
-//
-// Produces:
-// - application/json
-//
-// swagger:meta
 package main
 
 import (
@@ -28,41 +16,9 @@ import (
 	"projekat/services"
 
 	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
-
-// Definisanje potrebnih elemenata
-var (
-	currentCount = 0
-	httpHits     = prometheus.NewCounter(
-		prometheus.CounterOpts{
-			Name: "my_app_http_hit_total",
-			Help: "Total number of HTTP hits.",
-		},
-	)
-	metricsList        = []prometheus.Collector{httpHits}
-	prometheusRegistry = prometheus.NewRegistry()
-)
-
-func init() {
-	// Registracija metrika koje će biti izložene
-	prometheusRegistry.MustRegister(metricsList...)
-}
-
-func metricsHandler() http.Handler {
-	return promhttp.HandlerFor(prometheusRegistry, promhttp.HandlerOpts{})
-}
-
-func count(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		httpHits.Inc()
-		f(w, r) // originalna funkcija se poziva
-	}
-}
 
 func main() {
-
 	// Kanal za prekid signala
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -126,9 +82,6 @@ func main() {
 	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", handlerGroup.GetFilteredConfigs).Methods("GET")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{filter}", handlerGroup.RemoveByLabels).Methods("DELETE")
 
-	// Dodavanje rute za metrike
-	router.Path("/metrics").Handler(metricsHandler())
-
 	// Pokretanje servera u zasebnoj gorutini
 	go func() {
 		log.Println("Starting server...")
@@ -142,7 +95,7 @@ func main() {
 	log.Println("Received SIGINT or SIGTERM. Shutting down...")
 
 	// Shutdown servera
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatalf("HTTP server shutdown failed: %v", err)
