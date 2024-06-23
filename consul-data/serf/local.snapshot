@@ -5,10 +5,15 @@ event-clock: 2
 alive: server-1 172.18.0.2:8301
 event-clock: 3
 alive: server-1 172.18.0.2:8301
+event-clock: 1
+alive: server-1 172.18.0.2:8301
+event-clock: 2
+alive: server-1 172.18.0.2:8301
+event-clock: 3
+alive: server-1 172.18.0.2:8301
 event-clock: 4
 alive: server-1 172.18.0.2:8301
 event-clock: 5
-alive: server-1 172.18.0.2:8301
 alive: server-1 172.18.0.2:8301
 event-clock: 6
 alive: server-1 172.18.0.2:8301
@@ -29,7 +34,34 @@ alive: server-1 172.18.0.2:8301
 event-clock: 14
 alive: server-1 172.18.0.2:8301
 event-clock: 15
+<<<<<<< HEAD
 alive: server-1 172.18.0.3:8301
 event-clock: 16
 alive: server-1 172.18.0.2:8301
 event-clock: 17
+=======
+alive: server-1 172.18.0.2:8301
+event-clock: 16
+alive: server-1 172.18.0.2:8301
+event-clock: 17
+alive: server-1 172.18.0.2:8301
+event-clock: 18
+alive: server-1 172.18.0.2:8301
+event-clock: 19
+alive: server-1 172.18.0.2:8301
+event-clock: 20
+alive: server-1 172.18.0.2:8301
+event-clock: 1
+alive: server-1 172.18.0.2:8301
+event-clock: 2
+alive: server-1 172.18.0.2:8301
+event-clock: 3
+alive: server-1 172.18.0.2:8301
+event-clock: 4
+alive: server-1 172.18.0.3:8301
+event-clock: 5
+alive: server-1 172.18.0.3:8301
+event-clock: 6
+alive: server-1 172.18.0.3:8301
+event-clock: 7
+>>>>>>> a75347f276ff02ee899f4486b5e781d55b3d965c
