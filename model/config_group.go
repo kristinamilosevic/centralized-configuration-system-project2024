@@ -22,7 +22,8 @@ func NewConfigGroup2(name string, version int) ConfigGroup {
 }
 
 type ConfigGroupRepository interface {
-	Create(configGroup ConfigGroup) error
+	CreateConfigGroup(configGroup *ConfigGroup, idempotencyKey, bodyHash string) error
+	CheckIfExists(idempotencyKey, bodyHash string) (bool, error)
 	Read(name string, version int) (ConfigGroup, error)
 	Update(configGroup ConfigGroup) error
 	Delete(name string, version int) error

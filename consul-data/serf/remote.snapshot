@@ -38,12 +38,11 @@ alive: server-1.dc1 172.18.0.3:8302
 alive: server-1.dc1 172.18.0.3:8302
 alive: server-1.dc1 172.18.0.3:8302
 alive: server-1.dc1 172.18.0.3:8302
-<<<<<<< HEAD
-=======
 alive: server-1.dc1 172.18.0.3:8302
 alive: server-1.dc1 172.18.0.3:8302
 alive: server-1.dc1 172.18.0.3:8302
 alive: server-1.dc1 172.18.0.3:8302
 alive: server-1.dc1 172.18.0.3:8302
 alive: server-1.dc1 172.18.0.3:8302
->>>>>>> 0a534fd067562cd0666428498aac1345bf398262
+alive: server-1.dc1 172.18.0.2:8302
+alive: server-1.dc1 172.18.0.2:8302

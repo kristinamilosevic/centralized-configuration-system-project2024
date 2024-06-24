@@ -23,6 +23,12 @@ func NewConfigGroupHandler(service services.ConfigGroupService) ConfigGroupHandl
 
 // POST /configGroups
 func (c ConfigGroupHandler) Create(w http.ResponseWriter, r *http.Request) {
+	idempotencyKey := r.Header.Get("Idempotency-Key")
+	if idempotencyKey == "" {
+		http.Error(w, "Idempotency-Key header is required", http.StatusBadRequest)
+		return
+	}
+
 	var configGroup model.ConfigGroup
 	err := json.NewDecoder(r.Body).Decode(&configGroup)
 	if err != nil {
@@ -30,15 +36,27 @@ func (c ConfigGroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Provera da li grupa već postoji
-	existingGroup, err := c.service.Get(configGroup.Name, configGroup.Version)
-	if err == nil && (existingGroup.Name != "" || existingGroup.Version != 0) {
-		http.Error(w, "config group with this name and version already exists", http.StatusConflict)
+	// Generate hash of the request body
+	bodyHash, err := hashRequestBody(configGroup)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Kreiranje nove grupe
-	err = c.service.Create(configGroup)
+	// Check if the idempotency key and body hash combination already exists
+	exists, err := c.service.CheckIfExists(idempotencyKey, bodyHash)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if exists {
+		http.Error(w, "Request with the same Idempotency-Key and body already exists", http.StatusConflict)
+		return
+	}
+
+	// Create new configuration group with the combination of Idempotency-Key and body hash
+	err = c.service.CreateConfigGroup(configGroup, idempotencyKey, bodyHash)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
