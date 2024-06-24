@@ -42,19 +42,71 @@ func constructKey(name string, version int) string {
 	return fmt.Sprintf("configs/%s/%d", name, version)
 }
 
-func (ps *PostStore) CreateConfig(config *model.Config2) (*model.Config2, error) {
+func (ps *PostStore) CreateConfig(config *model.Config2, idempotencyKey, bodyHash string) error {
 	kv := ps.cli.KV()
 	key := constructKey(config.Name, config.Version)
+	idempotentKey := fmt.Sprintf("idempotency/%s/%s", idempotencyKey, bodyHash)
+
 	data, err := json.Marshal(config)
 	if err != nil {
-		return nil, err
+		return err
 	}
+
+	// Skladištenje konfiguracije
 	p := &api.KVPair{Key: key, Value: data}
 	_, err = kv.Put(p, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return config, nil
+
+	// Skladištenje idempotentnog ključa i hash-a tela kao JSON objekat
+	idempotentData, err := json.Marshal(map[string]string{"body-hash": bodyHash})
+	if err != nil {
+		return err
+	}
+	idempotentKV := &api.KVPair{Key: idempotentKey, Value: idempotentData}
+	_, err = kv.Put(idempotentKV, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ps *PostStore) GetHashByIdempotencyKey(idempotencyKey string) (string, error) {
+	kv := ps.cli.KV()
+	idempotentKey := fmt.Sprintf("idempotency/%s", idempotencyKey)
+
+	pair, _, err := kv.Get(idempotentKey, nil)
+	if err != nil {
+		return "", err
+	}
+	if pair == nil {
+		return "", fmt.Errorf("hash not found")
+	}
+
+	var hashData map[string]string
+	err = json.Unmarshal(pair.Value, &hashData)
+	if err != nil {
+		return "", err
+	}
+
+	return hashData["body-hash"], nil
+}
+
+func (ps *PostStore) CheckIfExists(idempotencyKey, bodyHash string) (bool, error) {
+	kv := ps.cli.KV()
+	idempotentKey := fmt.Sprintf("idempotency/%s/%s", idempotencyKey, bodyHash)
+
+	pair, _, err := kv.Get(idempotentKey, nil)
+	if err != nil {
+		return false, err
+	}
+	if pair == nil {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (ps *PostStore) GetConfig(name string, version int) (*model.Config2, error) {

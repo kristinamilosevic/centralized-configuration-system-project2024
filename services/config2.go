@@ -20,9 +20,12 @@ func (s Config2Service) Hello() {
 	fmt.Println("hello from config service")
 }
 
-func (s Config2Service) CreateConfig(config model.Config2) error {
-	_, err := s.repo.CreateConfig(&config)
-	return err
+func (s Config2Service) CreateConfig(config model.Config2, idempotencyKey, bodyHash string) error {
+	return s.repo.CreateConfig(&config, idempotencyKey, bodyHash)
+}
+
+func (s Config2Service) GetByIdempotencyKey(idempotencyKey string) (string, error) {
+	return s.repo.GetHashByIdempotencyKey(idempotencyKey)
 }
 
 func (s Config2Service) Read(name string, version int) (model.Config2, error) {
@@ -32,7 +35,9 @@ func (s Config2Service) Read(name string, version int) (model.Config2, error) {
 	}
 	return *config, nil
 }
-
+func (s Config2Service) CheckIfExists(idempotencyKey, bodyHash string) (bool, error) {
+	return s.repo.CheckIfExists(idempotencyKey, bodyHash)
+}
 func (s Config2Service) UpdateConfig(config model.Config2) error {
 	return s.repo.UpdateConfig(&config)
 }

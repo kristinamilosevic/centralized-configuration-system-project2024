@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"projekat/model"
@@ -20,8 +22,24 @@ func NewConfig2Handler(service services.Config2Service) Config2Handler {
 	}
 }
 
-// POST /configs
+// Hash function for the request body
+func hashRequestBody(body interface{}) (string, error) {
+	jsonBytes, err := json.Marshal(body)
+	if err != nil {
+		return "", err
+	}
+	hash := sha256.Sum256(jsonBytes)
+	return hex.EncodeToString(hash[:]), nil
+}
+
+// POST /configs2
 func (c Config2Handler) Create(w http.ResponseWriter, r *http.Request) {
+	idempotencyKey := r.Header.Get("Idempotency-Key")
+	if idempotencyKey == "" {
+		http.Error(w, "Idempotency-Key header is required", http.StatusBadRequest)
+		return
+	}
+
 	var config model.Config2
 	err := json.NewDecoder(r.Body).Decode(&config)
 	if err != nil {
@@ -29,15 +47,27 @@ func (c Config2Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Provera da li konfiguracija već postoji
-	existingConfig, err := c.service.Get(config.Name, config.Version)
-	if err == nil && (existingConfig.Name != "" || existingConfig.Version != 0) {
-		http.Error(w, "configuration with this name and version already exists", http.StatusConflict)
+	// Generate hash of the request body
+	bodyHash, err := hashRequestBody(config)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Kreiranje nove konfiguracije
-	err = c.service.CreateConfig(config)
+	// Check if the idempotency key and body hash combination already exists
+	exists, err := c.service.CheckIfExists(idempotencyKey, bodyHash)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if exists {
+		http.Error(w, "Request with the same Idempotency-Key and body already exists", http.StatusConflict)
+		return
+	}
+
+	// Create new configuration with the combination of Idempotency-Key and body hash
+	err = c.service.CreateConfig(config, idempotencyKey, bodyHash)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
