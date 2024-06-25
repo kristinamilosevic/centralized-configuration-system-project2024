@@ -1,11 +1,19 @@
 package model
 
+// swagger:model ConfigGroup
 type ConfigGroup struct {
-	Name          string    `json:"name"`
-	Version       int       `json:"version"`
+	// Name of the post
+	// in: string
+	Name string `json:"name"`
+	// Version of the post
+	// in: int
+	Version int `json:"version"`
+	// Configuration of the post
+	// in: []Config2
 	Configuration []Config2 `json:"configuration"`
 }
 
+// NewConfigGroup creates a new ConfigGroup instance.
 func NewConfigGroup(name string, version int, configuration []Config2) ConfigGroup {
 	return ConfigGroup{
 		Name:          name,
@@ -14,6 +22,7 @@ func NewConfigGroup(name string, version int, configuration []Config2) ConfigGro
 	}
 }
 
+// NewConfigGroup2 creates a new ConfigGroup instance with default values.
 func NewConfigGroup2(name string, version int) ConfigGroup {
 	return ConfigGroup{
 		Name:    name,
@@ -21,6 +30,7 @@ func NewConfigGroup2(name string, version int) ConfigGroup {
 	}
 }
 
+// ConfigGroupRepository defines methods for working with ConfigGroup instances.
 type ConfigGroupRepository interface {
 	CreateConfigGroup(configGroup *ConfigGroup, idempotencyKey, bodyHash string) error
 	CheckIfExists(idempotencyKey, bodyHash string) (bool, error)

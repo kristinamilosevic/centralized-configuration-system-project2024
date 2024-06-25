@@ -1,3 +1,15 @@
+// Post API
+//
+//	Title: Post API
+//
+//	Schemes: http
+//	Version: 0.0.1
+//	BasePath: /
+//
+//	Produces:
+//	  - application/json
+//
+// swagger:meta
 package main
 
 import (
@@ -10,11 +22,12 @@ import (
 	"time"
 
 	"projekat/handlers"
-	"projekat/middleware"
 	"projekat/poststore"
+	"projekat/rate_limiter"
 	"projekat/repositories"
 	"projekat/services"
 
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/mux"
 )
 
@@ -53,7 +66,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// Kreiranje rate limiter middleware
-	limiter := middleware.NewRateLimiter(100, time.Minute) // 5 zahteva u minuti
+	limiter := rate_limiter.NewRateLimiter(100, time.Minute) // 5 zahteva u minuti
 
 	// Dodavanje middleware-a na ruter
 	router.Use(func(next http.Handler) http.Handler {
@@ -81,6 +94,11 @@ func main() {
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}", handlerGroup.AddConfig).Methods("PUT")
 	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", handlerGroup.GetFilteredConfigs).Methods("GET")
 	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{filter}", handlerGroup.RemoveByLabels).Methods("DELETE")
+
+	// SwaggerUI
+	optionsDevelopers := middleware.SwaggerUIOpts{SpecURL: "swagger.yaml"}
+	developerDocumentationHandler := middleware.SwaggerUI(optionsDevelopers, nil)
+	router.Handle("/docs", developerDocumentationHandler)
 
 	// Pokretanje servera u zasebnoj gorutini
 	go func() {
