@@ -21,7 +21,28 @@ func NewConfigGroupHandler(service services.ConfigGroupService) ConfigGroupHandl
 	}
 }
 
-// POST /configGroups
+// swagger:route POST /configGroups configGroups createConfigGroup
+// Creates a new configuration group.
+//
+// responses:
+//
+//	201: NoContent
+//	400: BadRequestResponse
+//	409: ErrorResponse
+//	500: InternalServerErrorResponse
+//
+// swagger:parameters createConfigGroup
+type CreateConfigGroupRequest struct {
+	// - name: body
+	//  in: body
+	//  description: name and status
+	//  schema:
+	//  type: object
+	//     "$ref": "#/definitions/RequestConfigGroup"
+	//  required: true
+	Body model.ConfigGroup `json:"body"`
+}
+
 func (c ConfigGroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 	idempotencyKey := r.Header.Get("Idempotency-Key")
 	if idempotencyKey == "" {
@@ -65,7 +86,29 @@ func (c ConfigGroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// GET /configGroups/{name}/{version}
+// swagger:route GET /configGroups/{name}/{version} configGroups getConfigGroup
+// Retrieves a configuration group by name and version.
+//
+// responses:
+//
+//	200: ResponseConfigGroup
+//	400: BadRequestResponse
+//	404: NotFoundResponse
+//	500: InternalServerErrorResponse
+//
+// swagger:parameters getConfigGroup
+type GetConfigGroupRequest struct {
+	// Configuration group name
+	// in: path
+	// required: true
+	Name string `json:"name"`
+
+	// Configuration group version
+	// in: path
+	// required: true
+	Version int `json:"version"`
+}
+
 func (c ConfigGroupHandler) Get(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	version := mux.Vars(r)["version"]
@@ -91,7 +134,29 @@ func (c ConfigGroupHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-// DELETE /configGroups/{name}/{version}
+// swagger:route DELETE /configGroups/{name}/{version} configGroups deleteConfigGroup
+// Deletes a configuration group by name and version.
+//
+// responses:
+//
+//	204: NoContent
+//	400: BadRequestResponse
+//	404: NotFoundResponse
+//	500: InternalServerErrorResponse
+//
+// swagger:parameters deleteConfigGroup
+type DeleteConfigGroupRequest struct {
+	// Configuration group name
+	// in: path
+	// required: true
+	Name string `json:"name"`
+
+	// Configuration group version
+	// in: path
+	// required: true
+	Version int `json:"version"`
+}
+
 func (c ConfigGroupHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	version := mux.Vars(r)["version"]
@@ -118,7 +183,21 @@ func (c ConfigGroupHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /configGroups
+// swagger:route GET /configGroups configGroups getAllConfigGroups
+// Retrieves all configuration groups.
+//
+// responses:
+//
+//   200: getAllConfigGroupsResponse
+//   500: InternalServerErrorResponse
+
+// swagger:response getAllConfigGroupsResponse
+type getAllConfigGroupsResponse struct {
+	// Configuration groups
+	// in: body
+	Body []model.ConfigGroup `json:"body"`
+}
+
 func (c ConfigGroupHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	configGroups, err := c.service.GetAll()
 	if err != nil {
@@ -136,7 +215,39 @@ func (c ConfigGroupHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-// DELETE /configGroups/{groupName}/{groupVersion}/removeConfig/{configName}/{configVersion}
+// swagger:route DELETE /configGroups/{groupName}/{groupVersion}/{configName}/{configVersion} configGroups removeConfigFromGroup
+// Removes a configuration from a group by name and version.
+//
+// responses:
+//
+//	204: NoContent
+//	400: BadRequestResponse
+//	404: NotFoundResponse
+//	500: InternalServerErrorResponse
+//
+// swagger:parameters removeConfigFromGroup
+type RemoveConfigFromGroupRequest struct {
+	// Configuration group name
+	// in: path
+	// required: true
+	GroupName string `json:"groupName"`
+
+	// Configuration group version
+	// in: path
+	// required: true
+	GroupVersion string `json:"groupVersion"`
+
+	// Configuration name
+	// in: path
+	// required: true
+	ConfigName string `json:"configName"`
+
+	// Configuration version
+	// in: path
+	// required: true
+	ConfigVersion string `json:"configVersion"`
+}
+
 func (c ConfigGroupHandler) RemoveConfig(w http.ResponseWriter, r *http.Request) {
 	// Dohvatanje imena grupe, verzije grupe, imena konfiguracije i verzije konfiguracije iz putanje rute
 	groupName := mux.Vars(r)["groupName"]
@@ -166,7 +277,36 @@ func (c ConfigGroupHandler) RemoveConfig(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// PUT /configGroups/{groupName}/{groupVersion}/addConfig
+// swagger:route PUT /configGroups/{groupName}/{groupVersion} configGroups addConfigToGroup
+// Adds a configuration to a group by name and version.
+//
+// responses:
+//
+//	201: NoContent
+//	400: BadRequestResponse
+//	409: ErrorResponse
+//	500: InternalServerErrorResponse
+//
+// swagger:parameters addConfigToGroup
+type AddConfigToGroupRequest struct {
+	// Configuration group name
+	// in: path
+	GroupName string `json:"groupName"`
+
+	// Configuration group version
+	// in: path
+	GroupVersion string `json:"groupVersion"`
+
+	// - name: body
+	//  in: body
+	//  description: name and status
+	//  schema:
+	//  type: object
+	//     "$ref": "#/definitions/RequestConfigGroup"
+	//  required: true
+	Body model.Config2 `json:"body"`
+}
+
 func (c ConfigGroupHandler) AddConfig(w http.ResponseWriter, r *http.Request) {
 	// Dohvatanje imena grupe i verzije grupe iz putanje rute
 	groupName := mux.Vars(r)["groupName"]
@@ -209,6 +349,56 @@ func (c ConfigGroupHandler) AddConfig(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// swagger:route GET /configGroups/{name}/{version}/{filter} configGroups getFilteredConfigs
+// Retrieves filtered configurations from a group by name, version, and filter criteria.
+//
+// responses:
+//
+//	200: []ResponseConfig
+//	400: BadRequestResponse
+//	500: InternalServerErrorResponse
+//
+// swagger:parameters getFilteredConfigs
+type GetFilteredConfigsRequest struct {
+	// Ime grupe konfiguracija
+	// in: path
+	// required: true
+	Name string `json:"name"`
+
+	// Verzija grupe konfiguracija
+	// in: path
+	// required: true
+	Version string `json:"version"`
+
+	// Filter za konfiguracije
+	// in: path
+	// required: true
+	Filter string `json:"filter"`
+}
+
+// swagger:response ResponseConfig
+type ResponseConfig struct {
+	// Id konfiguracije
+	// in: string
+	ID string `json:"id"`
+
+	// Naziv konfiguracije
+	// in: string
+	Name string `json:"name"`
+
+	// Verzija konfiguracije
+	// in: int
+	Version int `json:"version"`
+
+	// Opis konfiguracije
+	// in: string
+	Description string `json:"description"`
+
+	// Lista tagova konfiguracije
+	// in: []string
+	Tags []string `json:"tags"`
+}
+
 func (c ConfigGroupHandler) GetFilteredConfigs(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	versionStr := mux.Vars(r)["version"]
@@ -249,7 +439,33 @@ func (c ConfigGroupHandler) GetFilteredConfigs(w http.ResponseWriter, r *http.Re
 	w.Write(resp)
 }
 
-// DELETE /configGroups/{groupName}/{groupVersion}/removeByLabels/{filter}
+// swagger:route DELETE /configGroups/{groupName}/{groupVersion}/{filter} configGroups removeByLabels
+// Removes configurations from a group by labels using name, version, and label filter.
+//
+// responses:
+//
+//	204: NoContent
+//	400: BadRequestResponse
+//	500: InternalServerErrorResponse
+//
+// swagger:parameters removeByLabels
+type RemoveByLabelsRequest struct {
+	// Configuration group name
+	// in: path
+	// required: true
+	GroupName string `json:"groupName"`
+
+	// Configuration group version
+	// in: path
+	// required: true
+	GroupVersion string `json:"groupVersion"`
+
+	// Filter for configurations
+	// in: path
+	// required: true
+	Filter string `json:"filter"`
+}
+
 func (c ConfigGroupHandler) RemoveByLabels(w http.ResponseWriter, r *http.Request) {
 	groupName := mux.Vars(r)["groupName"]
 	groupVersion := mux.Vars(r)["groupVersion"]
@@ -282,4 +498,33 @@ func (c ConfigGroupHandler) RemoveByLabels(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// swagger:response ResponseConfigGroup
+type ResponseConfigGroup struct {
+	// Configuration group
+	// in: body
+	Body model.ConfigGroup `json:"body"`
+}
+
+// swagger:response ErrorResponse
+type ErrorResponse struct {
+	// Error status code
+	// in: int64
+	Status int64 `json:"status"`
+
+	// Message of the error
+	// in: string
+	Message string `json:"message"`
+}
+
+// swagger:response InternalServerErrorResponse
+type InternalServerErrorResponse struct {
+	// Error status code
+	// in: int64
+	Status int64 `json:"status"`
+
+	// Message of the error
+	// in: string
+	Message string `json:"message"`
 }

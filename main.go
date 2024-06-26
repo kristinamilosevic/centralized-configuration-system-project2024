@@ -1,3 +1,15 @@
+// Post API
+//
+//	Title: Post API
+//
+//	Schemes: http
+//	Version: 0.0.1
+//	BasePath: /
+//
+//	Produces:
+//	  - application/json
+//
+// swagger:meta
 package main
 
 import (

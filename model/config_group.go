@@ -1,8 +1,15 @@
 package model
 
+// swagger:model ConfigGroup
 type ConfigGroup struct {
-	Name          string    `json:"name"`
-	Version       int       `json:"version"`
+	// Name of the post
+	// in: string
+	Name string `json:"name"`
+	// Version of the post
+	// in: int
+	Version int `json:"version"`
+	// Configuration of the post
+	// in: []Config2
 	Configuration []Config2 `json:"configuration"`
 }
 
