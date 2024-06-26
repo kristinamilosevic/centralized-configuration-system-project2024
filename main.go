@@ -75,7 +75,7 @@ func main() {
 		})
 	})
 
-	// Postavljanje ruta
+	// Postavljanje svih ruta
 	router.HandleFunc("/configs/{name}/{version}", handler.Get).Methods("GET")
 	router.HandleFunc("/configs", handler.GetAll).Methods("GET")
 	router.HandleFunc("/configs", handler.Create).Methods("POST")
