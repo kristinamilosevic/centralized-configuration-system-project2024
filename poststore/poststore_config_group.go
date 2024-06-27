@@ -36,19 +36,50 @@ func constructGroupKey(name string, version int) string {
 	return fmt.Sprintf("configGroups/%s/%d", name, version)
 }
 
-func (gs *GroupStore) Create(configGroup model.ConfigGroup) error {
+func (gs *GroupStore) CreateConfigGroup(configGroup *model.ConfigGroup, idempotencyKey, bodyHash string) error {
 	kv := gs.cli.KV()
 	key := constructGroupKey(configGroup.Name, configGroup.Version)
-	if _, _, exists := kv.Get(key, nil); exists != nil {
-		return errors.New("config group with this name already exists")
-	}
+	idempotentKey := fmt.Sprintf("idempotency/%s/%s", idempotencyKey, bodyHash)
+
 	data, err := json.Marshal(configGroup)
 	if err != nil {
 		return err
 	}
+
+	// Skladištenje konfiguracione grupe
 	p := &api.KVPair{Key: key, Value: data}
 	_, err = kv.Put(p, nil)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Skladištenje idempotentnog ključa i hash-a tela kao JSON objekat
+	idempotentData, err := json.Marshal(map[string]string{"body-hash": bodyHash})
+	if err != nil {
+		return err
+	}
+	idempotentKV := &api.KVPair{Key: idempotentKey, Value: idempotentData}
+	_, err = kv.Put(idempotentKV, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gs *GroupStore) CheckIfExists(idempotencyKey, bodyHash string) (bool, error) {
+	kv := gs.cli.KV()
+	idempotentKey := fmt.Sprintf("idempotency/%s/%s", idempotencyKey, bodyHash)
+
+	pair, _, err := kv.Get(idempotentKey, nil)
+	if err != nil {
+		return false, err
+	}
+	if pair == nil {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (gs *GroupStore) Read(name string, version int) (model.ConfigGroup, error) {
@@ -156,26 +187,36 @@ func (gs *GroupStore) AddConfig(groupName string, groupVersion int, config model
 }
 
 func (gs *GroupStore) GetFilteredConfigs(name string, version int, filter map[string]string) ([]model.Config2, error) {
+	// Dobavljanje konfiguracione grupe iz skladišta
 	configGroup, err := gs.Read(name, version)
 	if err != nil {
 		return nil, err
 	}
+
 	var filteredConfigs []model.Config2
+
+	// Kreiranje prefiksa na osnovu filtera
+	prefix := ""
+	for key, value := range filter {
+		prefix = fmt.Sprintf("%s%s=%s", prefix, key, value)
+	}
+
+	// Filtriranje konfiguracija
 	for _, config := range configGroup.Configuration {
 		if len(config.Labels) != len(filter) {
-			continue
+			continue // preskoči ako broj etiketa ne odgovara
 		}
-		matches := true
-		for key, value := range filter {
-			if config.Labels[key] != value {
-				matches = false
-				break
-			}
+
+		configPrefix := ""
+		for key, value := range config.Labels {
+			configPrefix = fmt.Sprintf("%s%s=%s", configPrefix, key, value)
 		}
-		if matches {
+
+		if configPrefix == prefix {
 			filteredConfigs = append(filteredConfigs, config)
 		}
 	}
+
 	return filteredConfigs, nil
 }
 

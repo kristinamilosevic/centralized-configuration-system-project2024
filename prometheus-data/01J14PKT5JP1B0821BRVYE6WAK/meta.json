@@ -1,0 +1,17 @@
+{
+	"ulid": "01J14PKT5JP1B0821BRVYE6WAK",
+	"minTime": 1719165606109,
+	"maxTime": 1719172800000,
+	"stats": {
+		"numSamples": 170,
+		"numSeries": 5,
+		"numChunks": 10
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01J14PKT5JP1B0821BRVYE6WAK"
+		]
+	},
+	"version": 1
+}

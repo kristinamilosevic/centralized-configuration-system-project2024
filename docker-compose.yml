@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 
 services:
   consul:
@@ -22,5 +22,24 @@ services:
       DB: consul
       DBPORT: "8500"
 
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - '3000:3000'
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
 volumes:
   consul-data:
+  prometheus-data:
+  grafana-data:

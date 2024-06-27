@@ -20,8 +20,12 @@ func (s ConfigGroupService) Hello() {
 	fmt.Println("hello from config group service")
 }
 
-func (s ConfigGroupService) Create(configGroup model.ConfigGroup) error {
-	return s.repo.Create(configGroup)
+func (s ConfigGroupService) CreateConfigGroup(configGroup model.ConfigGroup, idempotencyKey, bodyHash string) error {
+	return s.repo.CreateConfigGroup(&configGroup, idempotencyKey, bodyHash)
+}
+
+func (s ConfigGroupService) CheckIfExists(idempotencyKey, bodyHash string) (bool, error) {
+	return s.repo.CheckIfExists(idempotencyKey, bodyHash)
 }
 
 func (s ConfigGroupService) Read(name string, version int) (model.ConfigGroup, error) {

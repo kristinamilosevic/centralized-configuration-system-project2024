@@ -1,0 +1,491 @@
+basePath: /
+definitions:
+    Config2:
+        properties:
+            labels:
+                additionalProperties:
+                    type: string
+                description: |-
+                    Labels of the post
+                    in: map[string]string
+                type: object
+                x-go-name: Labels
+            name:
+                description: |-
+                    Name of the post
+                    in: string
+                type: string
+                x-go-name: Name
+            parameters:
+                additionalProperties:
+                    type: string
+                description: |-
+                    Parameters of the post
+                    in: map[string]string
+                type: object
+                x-go-name: Parameters
+            version:
+                description: |-
+                    Version of the post
+                    in: int
+                format: int64
+                type: integer
+                x-go-name: Version
+        type: object
+        x-go-package: projekat/model
+    ConfigGroup:
+        properties:
+            configuration:
+                description: |-
+                    Configuration of the post
+                    in: []Config2
+                items:
+                    $ref: '#/definitions/Config2'
+                type: array
+                x-go-name: Configuration
+            name:
+                description: |-
+                    Name of the post
+                    in: string
+                type: string
+                x-go-name: Name
+            version:
+                description: |-
+                    Version of the post
+                    in: int
+                format: int64
+                type: integer
+                x-go-name: Version
+        type: object
+        x-go-package: projekat/model
+info:
+    description: 'Title: Post API'
+    title: Post API
+    version: 0.0.1
+paths:
+    /configGroups:
+        get:
+            operationId: getAllConfigGroups
+            responses:
+                "200":
+                    $ref: '#/responses/getAllConfigGroupsResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Retrieves all configuration groups.
+            tags:
+                - configGroups
+        post:
+            operationId: createConfigGroup
+            parameters:
+                - description: 'name: body'
+                  in: body
+                  name: body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/ConfigGroup'
+                  x-go-name: Body
+            responses:
+                "201":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "409":
+                    $ref: '#/responses/ErrorResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Creates a new configuration group.
+            tags:
+                - configGroups
+    /configGroups/{groupName}/{groupVersion}:
+        put:
+            operationId: addConfigToGroup
+            parameters:
+                - description: Configuration group name
+                  in: path
+                  name: groupName
+                  required: true
+                  type: string
+                  x-go-name: GroupName
+                - description: Configuration group version
+                  in: path
+                  name: groupVersion
+                  required: true
+                  type: string
+                  x-go-name: GroupVersion
+                - description: 'name: body'
+                  in: body
+                  name: body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/Config2'
+                  x-go-name: Body
+            responses:
+                "201":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "409":
+                    $ref: '#/responses/ErrorResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Adds a configuration to a group by name and version.
+            tags:
+                - configGroups
+    /configGroups/{groupName}/{groupVersion}/{configName}/{configVersion}:
+        delete:
+            operationId: removeConfigFromGroup
+            parameters:
+                - description: Configuration group name
+                  in: path
+                  name: groupName
+                  required: true
+                  type: string
+                  x-go-name: GroupName
+                - description: Configuration group version
+                  in: path
+                  name: groupVersion
+                  required: true
+                  type: string
+                  x-go-name: GroupVersion
+                - description: Configuration name
+                  in: path
+                  name: configName
+                  required: true
+                  type: string
+                  x-go-name: ConfigName
+                - description: Configuration version
+                  in: path
+                  name: configVersion
+                  required: true
+                  type: string
+                  x-go-name: ConfigVersion
+            responses:
+                "204":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Removes a configuration from a group by name and version.
+            tags:
+                - configGroups
+    /configGroups/{groupName}/{groupVersion}/{filter}:
+        delete:
+            operationId: removeByLabels
+            parameters:
+                - description: Configuration group name
+                  in: path
+                  name: groupName
+                  required: true
+                  type: string
+                  x-go-name: GroupName
+                - description: Configuration group version
+                  in: path
+                  name: groupVersion
+                  required: true
+                  type: string
+                  x-go-name: GroupVersion
+                - description: Filter for configurations
+                  in: path
+                  name: filter
+                  required: true
+                  type: string
+                  x-go-name: Filter
+            responses:
+                "204":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Removes configurations from a group by labels using name, version, and label filter.
+            tags:
+                - configGroups
+    /configGroups/{name}/{version}:
+        delete:
+            operationId: deleteConfigGroup
+            parameters:
+                - description: Configuration group name
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+                - description: Configuration group version
+                  format: int64
+                  in: path
+                  name: version
+                  required: true
+                  type: integer
+                  x-go-name: Version
+            responses:
+                "204":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Deletes a configuration group by name and version.
+            tags:
+                - configGroups
+        get:
+            operationId: getConfigGroup
+            parameters:
+                - description: Configuration group name
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+                - description: Configuration group version
+                  format: int64
+                  in: path
+                  name: version
+                  required: true
+                  type: integer
+                  x-go-name: Version
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfigGroup'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Retrieves a configuration group by name and version.
+            tags:
+                - configGroups
+    /configGroups/{name}/{version}/{filter}:
+        get:
+            operationId: getFilteredConfigs
+            parameters:
+                - description: Ime grupe konfiguracija
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+                - description: Verzija grupe konfiguracija
+                  in: path
+                  name: version
+                  required: true
+                  type: string
+                  x-go-name: Version
+                - description: Filter za konfiguracije
+                  in: path
+                  name: filter
+                  required: true
+                  type: string
+                  x-go-name: Filter
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfig'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Retrieves filtered configurations from a group by name, version, and filter criteria.
+            tags:
+                - configGroups
+    /configs2:
+        get:
+            operationId: getAllConfigs
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfig2'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Get all configurations.
+            tags:
+                - configs2
+        post:
+            operationId: createConfig2
+            parameters:
+                - description: 'name: body'
+                  in: body
+                  name: body
+                  required: true
+                  schema:
+                    $ref: '#/definitions/Config2'
+                  x-go-name: Body
+            responses:
+                "201":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Creates a new configuration.
+            tags:
+                - configs2
+    /configs2/{name}/{version}:
+        delete:
+            operationId: deleteConfig2
+            parameters:
+                - description: Configuration name
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+                - description: Configuration version
+                  format: int64
+                  in: path
+                  name: version
+                  required: true
+                  type: integer
+                  x-go-name: Version
+            responses:
+                "204":
+                    $ref: '#/responses/NoContent'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Deletes a configuration by name and version.
+            tags:
+                - configs2
+        get:
+            operationId: getConfig2
+            parameters:
+                - description: Configuration name
+                  in: path
+                  name: name
+                  required: true
+                  type: string
+                  x-go-name: Name
+                - description: Configuration version
+                  format: int64
+                  in: path
+                  name: version
+                  required: true
+                  type: integer
+                  x-go-name: Version
+            responses:
+                "200":
+                    $ref: '#/responses/ResponseConfig2'
+                "400":
+                    $ref: '#/responses/BadRequestResponse'
+                "404":
+                    $ref: '#/responses/NotFoundResponse'
+                "500":
+                    $ref: '#/responses/InternalServerErrorResponse'
+            summary: Get a configuration by name and version.
+            tags:
+                - configs2
+produces:
+    - application/json
+responses:
+    BadRequestResponse:
+        description: ""
+        headers:
+            message:
+                description: |-
+                    Message of the error
+                    in: string
+                type: string
+            status:
+                description: |-
+                    Error status code
+                    in: int64
+                format: int64
+                type: integer
+    ErrorResponse:
+        description: ""
+        headers:
+            message:
+                description: |-
+                    Message of the error
+                    in: string
+                type: string
+            status:
+                description: |-
+                    Error status code
+                    in: int64
+                format: int64
+                type: integer
+    InternalServerErrorResponse:
+        description: ""
+        headers:
+            message:
+                description: |-
+                    Message of the error
+                    in: string
+                type: string
+            status:
+                description: |-
+                    Error status code
+                    in: int64
+                format: int64
+                type: integer
+    NoContent:
+        description: ""
+    NotFoundResponse:
+        description: ""
+        headers:
+            message:
+                description: |-
+                    Message of the error
+                    in: string
+                type: string
+            status:
+                description: |-
+                    Error status code
+                    in: int64
+                format: int64
+                type: integer
+    ResponseConfig:
+        description: ""
+        headers:
+            description:
+                description: |-
+                    Opis konfiguracije
+                    in: string
+                type: string
+            id:
+                description: |-
+                    Id konfiguracije
+                    in: string
+                type: string
+            name:
+                description: |-
+                    Naziv konfiguracije
+                    in: string
+                type: string
+            tags:
+                description: |-
+                    Lista tagova konfiguracije
+                    in: []string
+                items:
+                    type: string
+                type: array
+            version:
+                description: |-
+                    Verzija konfiguracije
+                    in: int
+                format: int64
+                type: integer
+    ResponseConfig2:
+        description: ""
+        schema:
+            $ref: '#/definitions/Config2'
+    ResponseConfigGroup:
+        description: ""
+        schema:
+            $ref: '#/definitions/ConfigGroup'
+    getAllConfigGroupsResponse:
+        description: ""
+        schema:
+            items:
+                $ref: '#/definitions/ConfigGroup'
+            type: array
+schemes:
+    - http
+swagger: "2.0"

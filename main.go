@@ -1,3 +1,15 @@
+// Post API
+//
+//	Title: Post API
+//
+//	Schemes: http
+//	Version: 0.0.1
+//	BasePath: /
+//
+//	Produces:
+//	  - application/json
+//
+// swagger:meta
 package main
 
 import (
@@ -10,6 +22,7 @@ import (
 	"time"
 
 	"projekat/handlers"
+	"projekat/metrics"
 	"projekat/middleware"
 	"projekat/poststore"
 	"projekat/repositories"
@@ -22,9 +35,6 @@ func main() {
 	// Kanal za prekid signala
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
-
-	// Startovanje HTTP servera
-	srv := &http.Server{Addr: ":8000"}
 
 	// Inicijalizacija poststore-a
 	store, err := poststore.New()
@@ -50,6 +60,9 @@ func main() {
 	handler2 := handlers.NewConfig2Handler(service2)
 	handlerGroup := handlers.NewConfigGroupHandler(serviceGroup)
 
+	// Initialize metrics
+	metrics.Init()
+
 	router := mux.NewRouter()
 
 	// Kreiranje rate limiter middleware
@@ -62,25 +75,34 @@ func main() {
 		})
 	})
 
-	// Postavljanje ruta
-	router.HandleFunc("/configs/{name}/{version}", handler.Get).Methods("GET")
-	router.HandleFunc("/configs", handler.GetAll).Methods("GET")
-	router.HandleFunc("/configs", handler.Create).Methods("POST")
-	router.HandleFunc("/configs/{name}/{version}", handler.Delete).Methods("DELETE")
+	// Postavljanje ruta sa instrumentacijom
+	router.HandleFunc("/configs/{name}/{version}", InstrumentHandler("GetConfig", handler.Get)).Methods("GET")
+	router.HandleFunc("/configs", InstrumentHandler("GetAllConfigs", handler.GetAll)).Methods("GET")
+	router.HandleFunc("/configs", InstrumentHandler("CreateConfig", handler.Create)).Methods("POST")
+	router.HandleFunc("/configs/{name}/{version}", InstrumentHandler("DeleteConfig", handler.Delete)).Methods("DELETE")
 
-	router.HandleFunc("/configs2/{name}/{version}", handler2.Get).Methods("GET")
-	router.HandleFunc("/configs2", handler2.GetAll).Methods("GET")
-	router.HandleFunc("/configs2", handler2.Create).Methods("POST")
-	router.HandleFunc("/configs2/{name}/{version}", handler2.Delete).Methods("DELETE")
+	router.HandleFunc("/configs2/{name}/{version}", InstrumentHandler("GetConfig2", handler2.Get)).Methods("GET")
+	router.HandleFunc("/configs2", InstrumentHandler("GetAllConfigs2", handler2.GetAll)).Methods("GET")
+	router.HandleFunc("/configs2", InstrumentHandler("CreateConfig2", handler2.Create)).Methods("POST")
+	router.HandleFunc("/configs2/{name}/{version}", InstrumentHandler("DeleteConfig2", handler2.Delete)).Methods("DELETE")
 
-	router.HandleFunc("/configGroups/{name}/{version}", handlerGroup.Get).Methods("GET")
-	router.HandleFunc("/configGroups", handlerGroup.GetAll).Methods("GET")
-	router.HandleFunc("/configGroups", handlerGroup.Create).Methods("POST")
-	router.HandleFunc("/configGroups/{name}/{version}", handlerGroup.Delete).Methods("DELETE")
-	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{configName}/{configVersion}", handlerGroup.RemoveConfig).Methods("DELETE")
-	router.HandleFunc("/configGroups/{groupName}/{groupVersion}", handlerGroup.AddConfig).Methods("PUT")
-	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", handlerGroup.GetFilteredConfigs).Methods("GET")
-	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{filter}", handlerGroup.RemoveByLabels).Methods("DELETE")
+	router.HandleFunc("/configGroups/{name}/{version}", InstrumentHandler("GetConfigGroup", handlerGroup.Get)).Methods("GET")
+	router.HandleFunc("/configGroups", InstrumentHandler("GetAllConfigGroups", handlerGroup.GetAll)).Methods("GET")
+	router.HandleFunc("/configGroups", InstrumentHandler("CreateConfigGroup", handlerGroup.Create)).Methods("POST")
+	router.HandleFunc("/configGroups/{name}/{version}", InstrumentHandler("DeleteConfigGroup", handlerGroup.Delete)).Methods("DELETE")
+	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{configName}/{configVersion}", InstrumentHandler("RemoveConfigFromGroup", handlerGroup.RemoveConfig)).Methods("DELETE")
+	router.HandleFunc("/configGroups/{groupName}/{groupVersion}", InstrumentHandler("AddConfigToGroup", handlerGroup.AddConfig)).Methods("PUT")
+	router.HandleFunc("/configGroups/{name}/{version}/configs2/{filter}", InstrumentHandler("GetFilteredConfigs", handlerGroup.GetFilteredConfigs)).Methods("GET")
+	router.HandleFunc("/configGroups/{groupName}/{groupVersion}/{filter}", InstrumentHandler("RemoveConfigsByLabels", handlerGroup.RemoveByLabels)).Methods("DELETE")
+
+	// Metrics endpoint
+	router.Handle("/metrics", metrics.MetricsHandler())
+
+	// Startovanje HTTP servera
+	srv := &http.Server{
+		Addr:    ":8000",
+		Handler: router,
+	}
 
 	// Pokretanje servera u zasebnoj gorutini
 	go func() {
@@ -102,4 +124,42 @@ func main() {
 	}
 
 	log.Println("Server successfully shut down.")
+}
+
+// InstrumentHandler instruments an HTTP handler with Prometheus metrics
+func InstrumentHandler(name string, h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		// Instrumenting request total
+		metrics.RequestTotal.WithLabelValues(r.Method, name).Inc()
+
+		// Capture the status code
+		rr := &responseRecorder{w, http.StatusOK}
+		h.ServeHTTP(rr, r)
+
+		duration := time.Since(start).Seconds()
+		metrics.RequestDuration.WithLabelValues(r.Method, name).Observe(duration)
+
+		// Categorize the request as success or failure
+		if rr.statusCode >= 200 && rr.statusCode < 400 {
+			metrics.RequestSuccessTotal.WithLabelValues(r.Method, name).Inc()
+		} else {
+			metrics.RequestFailureTotal.WithLabelValues(r.Method, name).Inc()
+		}
+
+		// Calculate requests per second (for simplicity, increment by 1)
+		metrics.RequestsPerSecond.WithLabelValues(r.Method, name).Add(1 / duration)
+	}
+}
+
+// responseRecorder is a wrapper to capture the status code
+type responseRecorder struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rr *responseRecorder) WriteHeader(code int) {
+	rr.statusCode = code
+	rr.ResponseWriter.WriteHeader(code)
 }

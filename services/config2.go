@@ -1,10 +1,13 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"projekat/model"
 	"projekat/poststore"
 )
+
+var ErrConfigNotFound = errors.New("config not found")
 
 type Config2Service struct {
 	repo *poststore.PostStore
@@ -20,17 +23,27 @@ func (s Config2Service) Hello() {
 	fmt.Println("hello from config service")
 }
 
-func (s Config2Service) CreateConfig(config model.Config2) error {
-	_, err := s.repo.CreateConfig(&config)
-	return err
+func (s Config2Service) CreateConfig(config model.Config2, idempotencyKey, bodyHash string) error {
+	return s.repo.CreateConfig(&config, idempotencyKey, bodyHash)
+}
+
+func (s Config2Service) GetByIdempotencyKey(idempotencyKey string) (string, error) {
+	return s.repo.GetHashByIdempotencyKey(idempotencyKey)
 }
 
 func (s Config2Service) Read(name string, version int) (model.Config2, error) {
 	config, err := s.repo.GetConfig(name, version)
 	if err != nil {
+		if errors.Is(err, poststore.ErrConfigNotFound) {
+			return model.Config2{}, ErrConfigNotFound
+		}
 		return model.Config2{}, err
 	}
 	return *config, nil
+}
+
+func (s Config2Service) CheckIfExists(idempotencyKey, bodyHash string) (bool, error) {
+	return s.repo.CheckIfExists(idempotencyKey, bodyHash)
 }
 
 func (s Config2Service) UpdateConfig(config model.Config2) error {
@@ -45,6 +58,9 @@ func (s Config2Service) Delete(name string, version int) error {
 func (s Config2Service) Get(name string, version int) (model.Config2, error) {
 	config, err := s.repo.GetConfig(name, version)
 	if err != nil {
+		if errors.Is(err, poststore.ErrConfigNotFound) { // Provera da li je greška ErrConfigNotFound
+			return model.Config2{}, ErrConfigNotFound
+		}
 		return model.Config2{}, err
 	}
 	return *config, nil
