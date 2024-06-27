@@ -7,6 +7,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// Definisanje prilagođenih bucket-a za merenje trajanja zahteva
+var CustomBuckets = []float64{0.1, 0.5, 1, 2, 5, 10, 20, 30}
 var (
 	RequestTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -29,11 +31,12 @@ var (
 		},
 		[]string{"method", "endpoint"},
 	)
+	// Inicijalizacija metrike RequestDuration s prilagođenim bucket-ima
 	RequestDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "request_duration_seconds",
 			Help:    "Duration of requests in seconds",
-			Buckets: prometheus.DefBuckets,
+			Buckets: CustomBuckets,
 		},
 		[]string{"method", "endpoint"},
 	)

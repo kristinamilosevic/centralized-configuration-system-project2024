@@ -2,6 +2,7 @@ package poststore
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -14,6 +15,8 @@ import (
 type PostStore struct {
 	cli *api.Client
 }
+
+var ErrConfigNotFound = errors.New("config not found")
 
 func New() (*PostStore, error) {
 	db := os.Getenv("DB")
