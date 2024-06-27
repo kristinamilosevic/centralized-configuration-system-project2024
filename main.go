@@ -129,26 +129,26 @@ func main() {
 // InstrumentHandler instruments an HTTP handler with Prometheus metrics
 func InstrumentHandler(name string, h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		start := time.Now() // Mera vremena početka obrade zahteva
 
-		// Instrumenting request total
+		// Instrumentovanje ukupnog broja zahteva
 		metrics.RequestTotal.WithLabelValues(r.Method, name).Inc()
 
-		// Capture the status code
+		// Hvatanje statusnog koda
 		rr := &responseRecorder{w, http.StatusOK}
 		h.ServeHTTP(rr, r)
 
-		duration := time.Since(start).Seconds()
-		metrics.RequestDuration.WithLabelValues(r.Method, name).Observe(duration)
+		duration := time.Since(start).Seconds()                                   // Izračunavanje trajanja obrade zahteva u sekundama
+		metrics.RequestDuration.WithLabelValues(r.Method, name).Observe(duration) // Merenje vremena odziva zahteva
 
-		// Categorize the request as success or failure
+		// Kategorizacija zahteva kao uspešan ili neuspešan
 		if rr.statusCode >= 200 && rr.statusCode < 400 {
 			metrics.RequestSuccessTotal.WithLabelValues(r.Method, name).Inc()
 		} else {
 			metrics.RequestFailureTotal.WithLabelValues(r.Method, name).Inc()
 		}
 
-		// Calculate requests per second (for simplicity, increment by 1)
+		// Izračunavanje broja zahteva u sekundi (za jednostavnost, inkrementuje se za 1/duration)
 		metrics.RequestsPerSecond.WithLabelValues(r.Method, name).Add(1 / duration)
 	}
 }
