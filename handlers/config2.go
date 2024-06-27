@@ -29,6 +29,14 @@ func (c Config2Handler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Provera da li konfiguracija već postoji
+	existingConfig, err := c.service.Get(config.Name, config.Version)
+	if err == nil && (existingConfig.Name != "" || existingConfig.Version != 0) {
+		http.Error(w, "configuration with this name and version already exists", http.StatusConflict)
+		return
+	}
+
+	// Kreiranje nove konfiguracije
 	err = c.service.CreateConfig(config)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -74,9 +82,17 @@ func (c Config2Handler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Provera da li konfiguracija postoji pre nego što se pokuša brisanje
+	_, err = c.service.Get(name, versionInt)
+	if err != nil {
+		http.Error(w, "config not found", http.StatusNotFound)
+		return
+	}
+
+	// Brisanje konfiguracije
 	err = c.service.Delete(name, versionInt)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

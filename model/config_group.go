@@ -27,9 +27,9 @@ type ConfigGroupRepository interface {
 	Update(configGroup ConfigGroup) error
 	Delete(name string, version int) error
 	GetAll() ([]ConfigGroup, error)
-	Add(ConfigGroup ConfigGroup)
 	Get(name string, version int) (ConfigGroup, error)
 	RemoveConfig(groupName string, groupVersion int, configName string, configVersion int) error
 	AddConfig(groupName string, groupVersion int, config Config2) error
 	GetFilteredConfigs(name string, version int, filter map[string]string) ([]Config2, error)
+	RemoveByLabels(groupName string, groupVersion int, filter map[string]string) error
 }

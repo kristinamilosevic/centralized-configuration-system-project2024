@@ -30,6 +30,14 @@ func (c ConfigGroupHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Provera da li grupa već postoji
+	existingGroup, err := c.service.Get(configGroup.Name, configGroup.Version)
+	if err == nil && (existingGroup.Name != "" || existingGroup.Version != 0) {
+		http.Error(w, "config group with this name and version already exists", http.StatusConflict)
+		return
+	}
+
+	// Kreiranje nove grupe
 	err = c.service.Create(configGroup)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -75,9 +83,17 @@ func (c ConfigGroupHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Provera da li grupa postoji pre nego što se pokuša brisanje
+	_, err = c.service.Get(name, versionInt)
+	if err != nil {
+		http.Error(w, "config group not found", http.StatusNotFound)
+		return
+	}
+
+	// Brisanje grupe
 	err = c.service.Delete(name, versionInt)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -150,6 +166,19 @@ func (c ConfigGroupHandler) AddConfig(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	// Provera da li konfiguracija već postoji
+	configGroup, err := c.service.Get(groupName, groupVersionInt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	for _, existingConfig := range configGroup.Configuration {
+		if existingConfig.Name == config.Name && existingConfig.Version == config.Version {
+			http.Error(w, "configuration with the same name and version already exists", http.StatusConflict)
+			return
+		}
 	}
 
 	// Poziv servisa za dodavanje konfiguracije u grupu
